@@ -22,6 +22,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Logger;
 
 
@@ -46,6 +48,8 @@ public class TextViewAdvance extends AppCompatTextView {
     private int mTouchSlop;
     private int mMinFlingVelocity;
     private int mMaxFlingVelocity;
+    private long lastdowntime = 0;
+    private boolean isAutoMoving = false;
     private final ViewFlinger mViewFlinger = new ViewFlinger();
 
     //f(x) = (x-1)^5 + 1
@@ -78,6 +82,17 @@ public class TextViewAdvance extends AppCompatTextView {
         mTouchSlop = vc.getScaledTouchSlop();
         mMinFlingVelocity = vc.getScaledMinimumFlingVelocity();
         mMaxFlingVelocity = vc.getScaledMaximumFlingVelocity();
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if(isAutoMoving){
+                    scrollBy(0, 1);
+                    if(mListener!= null && mHeight > 0) {
+                        mListener.onProcess(1.0f * getScrollY() / getLineCount() / getLineHeight());
+                    }
+                }
+            }
+        }, 1000, 8);
     }
 
     public void pushTxt(String path){
@@ -120,9 +135,16 @@ public class TextViewAdvance extends AppCompatTextView {
 
         switch (action) {
             case MotionEvent.ACTION_DOWN: {
-                setScrollState(SCROLL_STATE_IDLE);
-                mScrollPointerId = event.getPointerId(0);
-                mLastTouchY = (int) (event.getY() + 0.5f);
+                if( (System.currentTimeMillis() - lastdowntime) < 300){
+                    isAutoMoving = true;
+//                    Log.e("aizhiqiang", "enable auto moving timecost = " + (System.currentTimeMillis() - lastdowntime));
+                }else {
+                    isAutoMoving = false;
+                    setScrollState(SCROLL_STATE_IDLE);
+                    mScrollPointerId = event.getPointerId(0);
+                    mLastTouchY = (int) (event.getY() + 0.5f);
+                }
+                lastdowntime = System.currentTimeMillis();
                 break;
             }
             case MotionEventCompat.ACTION_POINTER_DOWN: {
