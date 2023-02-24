@@ -49,6 +49,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private statusinfo statusinfo_ = null;
     File progressfile;
     EyeDetector detector;
+    String FilePath;
     TimerTask processtask = new TimerTask() {
         @Override
         public void run() {
@@ -104,6 +105,7 @@ public class FullscreenActivity extends AppCompatActivity {
         setContentView(R.layout.activity_fullscreen);
         baselayout = findViewById(R.id.baselayout);
         progressbar = findViewById(R.id.processbar);
+        FilePath = getIntent().getStringExtra("filePath");
         try {
             progressfile = new File(Environment.getExternalStorageDirectory().getPath() + "/DCIM/progress.json");
             if (!progressfile.exists() && !progressfile.createNewFile()) {
@@ -127,6 +129,7 @@ public class FullscreenActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         TextViewCreater.TextViewPara para = new TextViewCreater.TextViewPara();
+        para.txtpath = FilePath;
         para.basecontext = this;
         para.listener = new TextViewAdvance.IProcessListener() {
             @Override
@@ -166,20 +169,17 @@ public class FullscreenActivity extends AppCompatActivity {
         EyeDetector.EyeDetectorStatus intitpara = new EyeDetector.EyeDetectorStatus();
         intitpara.inputframesize = new Size(720,1280);
         intitpara.maxfacecnt = 1;
-        detector = new EyeDetector(intitpara);
-
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                long time = System.currentTimeMillis();
-                EyeDetector.EyeStatus sta =  detector.getEyeStatus();
-                Log.e("aizhiqiang pos", "eye pos " + String.valueOf(sta.pos.x) + ":" + String.valueOf(sta.pos.y) + "timecost:" +
-                        (System.currentTimeMillis() - time));
-            }
-        }, 1000, 5);
-
-//        detector = new EyeDetector();
-
+//        detector = new EyeDetector(intitpara);
+//
+//        new Timer().schedule(new TimerTask() {
+//            @Override
+//            public void run() {
+//                long time = System.currentTimeMillis();
+//                EyeDetector.EyeStatus sta =  detector.getEyeStatus();
+//                Log.e("aizhiqiang pos", "eye pos " + String.valueOf(sta.pos.x) + ":" + String.valueOf(sta.pos.y) + "timecost:" +
+//                        (System.currentTimeMillis() - time));
+//            }
+//        }, 1000, 5);
     }
 
 }

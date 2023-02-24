@@ -92,7 +92,7 @@ public class TextViewAdvance extends AppCompatTextView {
                     }
                 }
             }
-        }, 1000, 8);
+        }, 1000, 20);
     }
 
     public void pushTxt(String path){
