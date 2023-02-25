@@ -2,21 +2,6 @@ package com.example.utils;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Environment;
-import android.text.TextUtils;
-import android.text.method.ScrollingMovementMethod;
-import android.util.Size;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.RandomAccessFile;
-import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.Charset;
 
 
 /**

@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.logging.Logger;
 
 
 /**
@@ -254,6 +253,13 @@ public class TextViewAdvance extends AppCompatTextView {
             if(mHeight > 0) {
                 scrollTo(0, (int) (mHeight * pos));
             }
+        });
+    }
+
+    public void seekbypos(int step){
+        mHandler.post(() -> {
+            scrollBy(0, step);
+            mListener.onProcess(1.0f * getScrollY() / getLineCount() / getLineHeight());
         });
     }
 

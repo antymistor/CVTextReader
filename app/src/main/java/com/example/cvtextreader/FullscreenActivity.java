@@ -1,11 +1,9 @@
 package com.example.cvtextreader;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -17,12 +15,13 @@ import android.provider.Settings;
 import android.util.Log;
 
 import android.util.Size;
-import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.SeekBar;
 
+import com.example.utils.EyeDetector2;
+import com.example.utils.EyeDetectorbase;
 import com.example.utils.TextViewCreater;
 import com.example.utils.TextViewAdvance;
 import com.google.gson.Gson;
@@ -48,7 +47,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private SeekBar     progressbar = null;
     private statusinfo statusinfo_ = null;
     File progressfile;
-    EyeDetector detector;
+    EyeDetectorbase detector;
     String FilePath;
     TimerTask processtask = new TimerTask() {
         @Override
@@ -169,17 +168,20 @@ public class FullscreenActivity extends AppCompatActivity {
         EyeDetector.EyeDetectorStatus intitpara = new EyeDetector.EyeDetectorStatus();
         intitpara.inputframesize = new Size(720,1280);
         intitpara.maxfacecnt = 1;
-//        detector = new EyeDetector(intitpara);
-//
-//        new Timer().schedule(new TimerTask() {
-//            @Override
-//            public void run() {
-//                long time = System.currentTimeMillis();
-//                EyeDetector.EyeStatus sta =  detector.getEyeStatus();
-//                Log.e("aizhiqiang pos", "eye pos " + String.valueOf(sta.pos.x) + ":" + String.valueOf(sta.pos.y) + "timecost:" +
-//                        (System.currentTimeMillis() - time));
-//            }
-//        }, 1000, 5);
+        detector = new EyeDetector2(intitpara);
+        detector.setListener(new EyeDetectorbase.IEyeStatusListener() {
+            @Override
+            public void onEvent(EyeDetectorbase.eyeEvent event) {
+                if(event == EyeDetectorbase.eyeEvent.doubleFlip){
+                    viewtest.seekbypos(1000);
+                    Log.e("eyestatus", "eyestatus changed --> doubleFlip");
+                }else if(event == EyeDetectorbase.eyeEvent.onlyLeftFlip){
+                    Log.e("eyestatus", "eyestatus changed --> onlyLeftFlip");
+                }else if(event == EyeDetectorbase.eyeEvent.onlyRightFlip){
+                    Log.e("eyestatus", "eyestatus changed --> onlyRightFlip");
+                }
+            }
+        });
     }
 
 }
