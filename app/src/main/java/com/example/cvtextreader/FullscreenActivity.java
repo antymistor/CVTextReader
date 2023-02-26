@@ -101,7 +101,7 @@ public class FullscreenActivity extends AppCompatActivity {
         Objects.requireNonNull(getSupportActionBar()).hide();
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        getWindow().setStatusBarColor(Color.parseColor("#bb9977"));
+        getWindow().setStatusBarColor(Color.parseColor("#ccaa88"));
 
         setContentView(R.layout.activity_fullscreen);
         baselayout = findViewById(R.id.baselayout);
@@ -199,10 +199,10 @@ public class FullscreenActivity extends AppCompatActivity {
                     }
                 }else{
                     if(detector != null){
-                        viewtest.enableEyeAutoMoving(TextViewAdvance.AutoMovingMode.None);
                         detector.destroy();
                         detector = null;
                     }
+                    viewtest.enableEyeAutoMoving(TextViewAdvance.AutoMovingMode.None);
                 }
             }
         });

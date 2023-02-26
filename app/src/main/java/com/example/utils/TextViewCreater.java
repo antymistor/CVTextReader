@@ -13,7 +13,7 @@ public class TextViewCreater {
     public static class TextViewPara{
         public int fontsize        =  15;
         public int textcolor       = Color.parseColor("#000000");
-        public int backgroundcolor = Color.parseColor("#bb9977");
+        public int backgroundcolor = Color.parseColor("#ccaa88");
         public Context basecontext;
         public String txtpath      =  Environment.getExternalStorageDirectory().getPath() +"/test.txt";
         public TextViewAdvance.IProcessListener listener = null;
