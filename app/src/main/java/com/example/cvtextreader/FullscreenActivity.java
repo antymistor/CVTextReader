@@ -17,6 +17,8 @@ import android.util.Log;
 import android.util.Size;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.SeekBar;
 
@@ -108,11 +110,11 @@ public class FullscreenActivity extends AppCompatActivity {
         try {
             progressfile = new File(Environment.getExternalStorageDirectory().getPath() + "/DCIM/progress.json");
             if (!progressfile.exists() && !progressfile.createNewFile()) {
-                 progressfile = null;
-            }else{
+                progressfile = null;
+            } else {
                 FileInputStream fin = new FileInputStream(progressfile);
                 int len = fin.available();
-                if(len > 0) {
+                if (len > 0) {
                     byte[] buffer = new byte[len];
                     fin.read(buffer);
                     Gson gsonin = new Gson();
@@ -120,11 +122,11 @@ public class FullscreenActivity extends AppCompatActivity {
                     progressbar.setProgress((int) (statusinfo_.progress * 100));
                 }
             }
-            if(statusinfo_ == null){
+            if (statusinfo_ == null) {
                 statusinfo_ = new statusinfo();
                 statusinfo_.progress = 0;
             }
-        }catch(IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
         TextViewCreater.TextViewPara para = new TextViewCreater.TextViewPara();
@@ -133,11 +135,12 @@ public class FullscreenActivity extends AppCompatActivity {
         para.listener = new TextViewAdvance.IProcessListener() {
             @Override
             public void onProcess(float progress) {
-                 if(statusinfo_ != null){
-                     statusinfo_.progress = progress;
-                     progressbar.setProgress((int)(statusinfo_.progress * 100));
-                 }
+                if (statusinfo_ != null) {
+                    statusinfo_.progress = progress;
+                    progressbar.setProgress((int) (statusinfo_.progress * 100));
+                }
             }
+
             @Override
             public void onToEnd() {
                 Log.e("cvtextreader", "Has Move to end");
@@ -145,40 +148,61 @@ public class FullscreenActivity extends AppCompatActivity {
         };
         TextViewAdvance viewtest = TextViewCreater.createTextView(para);
         baselayout.addView(viewtest);
-        progressbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
+        progressbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if(fromUser) {
+                if (fromUser) {
                     statusinfo_.progress = 1.0f * progress / 100;
                     viewtest.seektopos(statusinfo_.progress);
                 }
             }
+
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
         });
-        new Timer().schedule(processtask,1000,5000);
+        new Timer().schedule(processtask, 1000, 5000);
         viewtest.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
                 viewtest.seektopos(statusinfo_.progress);
             }
         });
-        EyeDetector.EyeDetectorStatus intitpara = new EyeDetector.EyeDetectorStatus();
-        intitpara.inputframesize = new Size(720,1280);
-        intitpara.maxfacecnt = 1;
-        detector = new EyeDetector2(intitpara);
-        detector.setListener(new EyeDetectorbase.IEyeStatusListener() {
+        ((CheckBox) findViewById(R.id.eyeswitch)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void onEvent(EyeDetectorbase.eyeEvent event) {
-                if(event == EyeDetectorbase.eyeEvent.doubleFlip){
-                    viewtest.seekbypos(1000);
-                    Log.e("eyestatus", "eyestatus changed --> doubleFlip");
-                }else if(event == EyeDetectorbase.eyeEvent.onlyLeftFlip){
-                    Log.e("eyestatus", "eyestatus changed --> onlyLeftFlip");
-                }else if(event == EyeDetectorbase.eyeEvent.onlyRightFlip){
-                    Log.e("eyestatus", "eyestatus changed --> onlyRightFlip");
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    if(detector == null){
+                        EyeDetector.EyeDetectorStatus intitpara = new EyeDetector.EyeDetectorStatus();
+                        intitpara.inputframesize = new Size(720, 1280);
+                        intitpara.maxfacecnt = 1;
+                        detector = new EyeDetector2(intitpara);
+                        detector.setListener(new EyeDetectorbase.IEyeStatusListener() {
+                            @Override
+                            public void onEvent(EyeDetectorbase.eyeEvent event) {
+                                if (event == EyeDetectorbase.eyeEvent.EyeAllOpen) {
+                                    viewtest.enableEyeAutoMoving(TextViewAdvance.AutoMovingMode.None);
+                                    Log.e("eyestatus", "eyestatus changed --> EyeOpen");
+                                } else if (event == EyeDetectorbase.eyeEvent.LeftEyeClose) {
+                                    viewtest.enableEyeAutoMoving(TextViewAdvance.AutoMovingMode.Down);
+                                    Log.e("eyestatus", "eyestatus changed --> LeftEyeClose");
+                                } else if (event == EyeDetectorbase.eyeEvent.RightEyeClose) {
+                                    viewtest.enableEyeAutoMoving(TextViewAdvance.AutoMovingMode.UP);
+                                    Log.e("eyestatus", "eyestatus changed --> RightEyeClose");
+                                }
+                            }
+                        });
+                    }
+                }else{
+                    if(detector != null){
+                        viewtest.enableEyeAutoMoving(TextViewAdvance.AutoMovingMode.None);
+                        detector.destroy();
+                        detector = null;
+                    }
                 }
             }
         });

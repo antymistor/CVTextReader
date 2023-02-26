@@ -5,9 +5,12 @@ import android.graphics.PointF;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.opengl.GLES11Ext;
+import android.util.Log;
+import android.util.Pair;
 import android.util.Size;
 import androidx.annotation.Nullable;
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -35,6 +38,7 @@ public class EyeDetectorbase {
     Camera mCamera;
     SurfaceTexture mTexture;
     public byte[] mPreviewData;
+    private Timer detectorTimer;
     public EyeDetectorbase(EyeDetector.EyeDetectorStatus sta) {
         detstatus = sta;
         result = new EyeDetector.EyeStatus();
@@ -64,60 +68,73 @@ public class EyeDetectorbase {
         }
 
     }
+    public void destroy(){
+        if(mCamera != null){
+            mCamera.stopPreview();
+            mCamera.release();
+        }
+        if(mTexture != null){
+            mTexture.release();
+        }
+        if(detectorTimer != null){
+            detectorTimer.cancel();
+            detectorTimer = null;
+        }
+    }
+
     public EyeDetector.EyeStatus getEyeStatus(){
         return  result;
     }
 
     public enum eyeEvent{
-        doubleFlip,
-        onlyLeftFlip,
-        onlyRightFlip
+        LeftEyeClose,
+        RightEyeClose,
+        EyeAllOpen,
+        EyeAllClose
     }
     public interface IEyeStatusListener {
         void onEvent(EyeDetector2.eyeEvent event);
     }
     private IEyeStatusListener statuslistener;
     private static class eyeRecord{
-        boolean last_left_eye_open  = true;
-        boolean last_right_eye_open = true;
+        LinkedList<Pair<Boolean, Boolean>> EyeQueue = new LinkedList<Pair<Boolean, Boolean>>();
         long last_eye_status_changed_time = 0;
+        int maxQueuesize = 6;
     }
     eyeRecord eyerecord;
-    private void handlelistener(@Nullable EyeDetector2.eyeEvent event){
-        long lasttime = eyerecord.last_eye_status_changed_time;
-        eyerecord.last_eye_status_changed_time = System.currentTimeMillis();
-        if(event != null){
-            statuslistener.onEvent(event);
-        }
-        if((System.currentTimeMillis() - lasttime) < 1000){
-            statuslistener.onEvent(EyeDetector2.eyeEvent.doubleFlip);
-        }
-    }
     public void setListener(IEyeStatusListener listener){
         statuslistener = listener;
         eyerecord = new eyeRecord();
-        new Timer().schedule(new TimerTask() {
+        detectorTimer = new Timer();
+        detectorTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                if(!eyerecord.last_left_eye_open &&
-                        eyerecord.last_right_eye_open &&
-                        result.leftEyeIsOpen &&
-                        result.rightEyeIsOpen){
-                    handlelistener(EyeDetector2.eyeEvent.onlyLeftFlip);
-                }else if( eyerecord.last_left_eye_open &&
-                        !eyerecord.last_right_eye_open &&
-                        result.leftEyeIsOpen &&
-                        result.rightEyeIsOpen){
-                    handlelistener(EyeDetector2.eyeEvent.onlyRightFlip);
-                }else if(! eyerecord.last_left_eye_open &&
-                        !eyerecord.last_right_eye_open &&
-                        result.leftEyeIsOpen &&
-                        result.rightEyeIsOpen){
-                    handlelistener(null);
+                eyerecord.EyeQueue.add(new Pair<>(result.leftEyeIsOpen, result.rightEyeIsOpen));
+                while(eyerecord.maxQueuesize < eyerecord.EyeQueue.size()){
+                    eyerecord.EyeQueue.poll();
                 }
-                eyerecord.last_left_eye_open  = result.leftEyeIsOpen;
-                eyerecord.last_right_eye_open = result.rightEyeIsOpen;
+                if(eyerecord.EyeQueue.size() == eyerecord.maxQueuesize){
+                    if(eyerecord.EyeQueue.get(4).first && eyerecord.EyeQueue.get(4).second &&
+                       eyerecord.EyeQueue.get(5).first && eyerecord.EyeQueue.get(5).second){
+                       statuslistener.onEvent(eyeEvent.EyeAllOpen);
+                    }else if(!eyerecord.EyeQueue.get(3).first && eyerecord.EyeQueue.get(3).second &&
+                       !eyerecord.EyeQueue.get(4).first && eyerecord.EyeQueue.get(4).second &&
+                       !eyerecord.EyeQueue.get(5).first && eyerecord.EyeQueue.get(5).second) {
+                       statuslistener.onEvent(eyeEvent.LeftEyeClose);
+                    }else if(eyerecord.EyeQueue.get(3).first  && !eyerecord.EyeQueue.get(3).second &&
+                             eyerecord.EyeQueue.get(4).first  && !eyerecord.EyeQueue.get(4).second &&
+                             eyerecord.EyeQueue.get(5).first  && !eyerecord.EyeQueue.get(5).second){
+                        statuslistener.onEvent(eyeEvent.RightEyeClose);
+                    }else if(!eyerecord.EyeQueue.get(0).first  && !eyerecord.EyeQueue.get(0).second &&
+                             !eyerecord.EyeQueue.get(1).first  && !eyerecord.EyeQueue.get(1).second &&
+                             !eyerecord.EyeQueue.get(2).first  && !eyerecord.EyeQueue.get(2).second &&
+                             !eyerecord.EyeQueue.get(3).first  && !eyerecord.EyeQueue.get(3).second &&
+                             !eyerecord.EyeQueue.get(4).first  && !eyerecord.EyeQueue.get(4).second &&
+                             !eyerecord.EyeQueue.get(5).first  && !eyerecord.EyeQueue.get(5).second){
+                        statuslistener.onEvent(eyeEvent.EyeAllClose);
+                    }
+                }
             }
-        }, 100, 100);
+        }, 100, 50);
     }
 }

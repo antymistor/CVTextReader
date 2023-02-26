@@ -49,6 +49,14 @@ public class TextViewAdvance extends AppCompatTextView {
     private int mMaxFlingVelocity;
     private long lastdowntime = 0;
     private boolean isAutoMoving = false;
+
+    public enum AutoMovingMode{
+        None,
+        Down,
+        UP,
+        ForseNone
+    }
+    private AutoMovingMode movingmode = AutoMovingMode.None;
     private final ViewFlinger mViewFlinger = new ViewFlinger();
 
     //f(x) = (x-1)^5 + 1
@@ -84,14 +92,24 @@ public class TextViewAdvance extends AppCompatTextView {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                if(isAutoMoving){
-                    scrollBy(0, 1);
+                if(isAutoMoving || movingmode != AutoMovingMode.None ){
+                    scrollBy(0, movingmode == AutoMovingMode.Down ? 50 :
+                                   movingmode == AutoMovingMode.UP ? -50 : 1);
                     if(mListener!= null && mHeight > 0) {
                         mListener.onProcess(1.0f * getScrollY() / getLineCount() / getLineHeight());
                     }
                 }
             }
         }, 1000, 20);
+    }
+
+    public void enableEyeAutoMoving(AutoMovingMode mode){
+        if(mode == AutoMovingMode.ForseNone){
+            movingmode = AutoMovingMode.None;
+            isAutoMoving = false;
+        }else{
+            movingmode = mode;
+        }
     }
 
     public void pushTxt(String path){

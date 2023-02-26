@@ -16,14 +16,15 @@ import java.util.TimerTask;
  */
 public class EyeDetector2 extends  EyeDetectorbase{
     FaceDetector detector;
+    Timer handleTimer;
     public EyeDetector2(EyeDetector.EyeDetectorStatus sta) {
         super(sta);
         detector =  FaceDetection.getClient(new FaceDetectorOptions.Builder()
                                                 .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
                                                 .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
                                                 .build());
-
-        new Timer().schedule(new TimerTask() {
+        handleTimer = new Timer();
+        handleTimer.schedule(new TimerTask() {
             @Override
             public void run() {
                 detector.process(InputImage.fromByteArray(
@@ -46,11 +47,24 @@ public class EyeDetector2 extends  EyeDetectorbase{
                                         }
                                     }
                                     result.facecount      = faces.size();
-                                    result.rightEyeIsOpen = rightEyeOpenProb > 0.7f;
-                                    result.leftEyeIsOpen  = leftEyeOpenProb > 0.7f;
+                                    result.rightEyeIsOpen = rightEyeOpenProb > 0.5f;
+                                    result.leftEyeIsOpen  = leftEyeOpenProb > 0.5f;
                                 }
                         });
             }
-        }, 50, 50);
+        }, 50, 30);
+    }
+
+    @Override
+    public void destroy() {
+        super.destroy();
+        if(handleTimer != null){
+            handleTimer.cancel();
+            handleTimer = null;
+        }
+        if(detector != null){
+            detector.close();
+            detector = null;
+        }
     }
 }
