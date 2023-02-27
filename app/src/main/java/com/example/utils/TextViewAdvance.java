@@ -3,9 +3,12 @@ package com.example.utils;
 import android.content.Context;
 import android.graphics.Rect;
 import android.os.Handler;
+import android.text.TextPaint;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.Pair;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.ViewConfiguration;
 import android.view.animation.Interpolator;
@@ -17,13 +20,17 @@ import androidx.core.view.MotionEventCompat;
 import androidx.core.view.VelocityTrackerCompat;
 import androidx.core.view.ViewCompat;
 
+import com.example.utils.FileCharsetDetector;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -119,16 +126,29 @@ public class TextViewAdvance extends AppCompatTextView {
                 if(file.exists()){
                     InputStreamReader streamreader = null;
                     try {
-                        streamreader = new InputStreamReader(new FileInputStream(file), "utf-8");
+                        streamreader = new InputStreamReader(new FileInputStream(file), FileCharsetDetector.GetCharset(file));
                         BufferedReader bufferreader = new BufferedReader(streamreader);
                         StringBuffer sb = new StringBuffer("");
                         String line;
+
+
+                        ArrayList<Pair<String, Float>> list = new ArrayList<Pair<String, Float>>();
+                        int linecount = 0;
+                        Pattern p =Pattern.compile("^.{0,10}第.{1,5}[章节回].{0,30}");
+                        int fontsperLine = getFontsCntPerLine();
+
                         while ((line = bufferreader.readLine()) != null) {
                             sb.append(line);
                             sb.append("\n");
+                            if(p.matcher(line).find()){
+                                list.add(new Pair<>(line, (float)linecount));
+                            }
+                            linecount += Math.ceil(1.0f* line.length() / fontsperLine) ;
+                        }
+                        if(mListener!=null){
+                            mListener.onGetList(list, linecount);
                         }
                         setText(sb.toString());
-
                         mHeight = getLineHeight() * getLineCount();
                         Log.e("aizhiqing", "aizhiqiang height = " + mHeight);
                     }catch (IOException e) {
@@ -138,6 +158,23 @@ public class TextViewAdvance extends AppCompatTextView {
             }
 
         });
+    }
+
+    public int getFontsCntPerLine() {
+        //update font realsize
+        String text = "测试中文";
+        TextPaint newPaint = new TextPaint();
+        float textSize = getResources().getDisplayMetrics().scaledDensity * fontsize;
+        newPaint.setTextSize(textSize);
+        float newPaintWidth = newPaint.measureText(text);
+        return (int) (4 * getWidth() / newPaintWidth );
+    }
+
+    private float fontsize = 15;
+    @Override
+    public void setTextSize(float size) {
+        super.setTextSize(size);
+        fontsize = size;
     }
 
     @Override
@@ -257,6 +294,7 @@ public class TextViewAdvance extends AppCompatTextView {
     public interface IProcessListener {
         void onProcess(float progress);
         void onToEnd();
+        void onGetList(ArrayList<Pair<String, Float>> list, long linesum);
     }
 
     private IProcessListener mListener = null;

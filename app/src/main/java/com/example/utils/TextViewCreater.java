@@ -23,8 +23,8 @@ public class TextViewCreater {
         view.setBackgroundColor(para.backgroundcolor);
         view.setTextColor(para.textcolor);
         view.setTextSize(para.fontsize);
-        view.pushTxt(para.txtpath);
         view.setListener(para.listener);
+        view.pushTxt(para.txtpath);
         return view;
     }
 }

@@ -4,6 +4,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -11,16 +12,20 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
 
+import android.util.Pair;
 import android.util.Size;
+import android.view.Gravity;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.SeekBar;
+import android.widget.Toast;
 
 import com.example.utils.EyeDetector2;
 import com.example.utils.EyeDetectorbase;
@@ -33,6 +38,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -43,61 +49,22 @@ public class FullscreenActivity extends AppCompatActivity {
     public class statusinfo{
         float progress = 0;
     }
-    private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 0x01;
-    private static final int REQUEST_CAMERA_CODE = 0x100;
     private FrameLayout baselayout  = null;
     private SeekBar     progressbar = null;
     private statusinfo statusinfo_ = null;
+    private Float lastpageprocess = 0.0f;
+    private Float nextpageprocess = 0.0f;
     File progressfile;
     EyeDetectorbase detector;
     String FilePath;
-    TimerTask processtask = new TimerTask() {
-        @Override
-        public void run() {
-           if(progressfile.exists() && statusinfo_ != null){
-               try {
-                     BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(progressfile,false), "UTF-8"));
-                     Gson gson = new Gson();
-                     String content = gson.toJson(statusinfo_);
-                     writer.write(content);
-                     writer.close();
-                 }catch ( IOException e) {
-                     e.printStackTrace();
-                 }
-           }
-        }
-    };
-    private Boolean CheckPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // 安卓11，判断有没有“所有文件访问权限”权限
-            if (Environment.isExternalStorageManager()) {
-                return true;
-            } else {
-                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
-                intent.setData(Uri.parse("package:" + getPackageName()));
-                startActivityForResult(intent, MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
-                return false;
-            }
-        }
-        if (ContextCompat.checkSelfPermission(this,
-                android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
+    ArrayList<Pair<String, Float>> titlelist;
+    long linesum = 0;
+    Context mContext;
 
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
-            return false;
-        }
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_CODE);
-            }
-        }
-        return true;
-    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mContext = this;
         Objects.requireNonNull(getSupportActionBar()).hide();
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
@@ -107,6 +74,8 @@ public class FullscreenActivity extends AppCompatActivity {
         baselayout = findViewById(R.id.baselayout);
         progressbar = findViewById(R.id.processbar);
         FilePath = getIntent().getStringExtra("filePath");
+
+        //get and set status from disk
         try {
             progressfile = new File(Environment.getExternalStorageDirectory().getPath() + "/DCIM/progress.json");
             if (!progressfile.exists() && !progressfile.createNewFile()) {
@@ -129,6 +98,8 @@ public class FullscreenActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        //build TextView
         TextViewCreater.TextViewPara para = new TextViewCreater.TextViewPara();
         para.txtpath = FilePath;
         para.basecontext = this;
@@ -140,14 +111,21 @@ public class FullscreenActivity extends AppCompatActivity {
                     progressbar.setProgress((int) (statusinfo_.progress * 100));
                 }
             }
-
             @Override
             public void onToEnd() {
                 Log.e("cvtextreader", "Has Move to end");
             }
+
+            @Override
+            public void onGetList(ArrayList<Pair<String, Float>> list, long linesum_) {
+                titlelist = list;
+                linesum = linesum_;
+            }
         };
         TextViewAdvance viewtest = TextViewCreater.createTextView(para);
         baselayout.addView(viewtest);
+
+        //set progressbar callback
         progressbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -156,22 +134,76 @@ public class FullscreenActivity extends AppCompatActivity {
                     viewtest.seektopos(statusinfo_.progress);
                 }
             }
-
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-
+            public void onStartTrackingTouch(SeekBar seekBar) {}
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-            }
+            public void onStopTrackingTouch(SeekBar seekBar) {}
         });
-        new Timer().schedule(processtask, 1000, 5000);
+
+        //write current progress to disk
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if(progressfile.exists() && statusinfo_ != null){
+                    try {
+                        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(progressfile,false), "UTF-8"));
+                        Gson gson = new Gson();
+                        String content = gson.toJson(statusinfo_);
+                        writer.write(content);
+                        writer.close();
+                    }catch ( IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }, 1000, 5000);
+
+
+        //show page title by toast
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if(titlelist != null && titlelist.size() > 0     &&
+                         linesum > 0 && statusinfo_!= null       &&
+                (statusinfo_.progress * linesum >= nextpageprocess ||
+                statusinfo_.progress * linesum < lastpageprocess)){
+                    for(int i = 0 ; i != titlelist.size() ; ++i){
+                        if( 1.0f * titlelist.get(i).second / linesum < statusinfo_.progress &&
+                                ((i + 1) == titlelist.size() || 1.0f * titlelist.get(i + 1).second / linesum > statusinfo_.progress)){
+                            lastpageprocess = titlelist.get(i).second;
+                            if((i + 1) == titlelist.size()){
+                                nextpageprocess = (float)linesum;
+                            }else{
+                                nextpageprocess = titlelist.get(i+1).second;
+                            }
+                            int finalI = i;
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast toast = Toast.makeText(mContext, titlelist.get(finalI).first, Toast.LENGTH_SHORT);
+                                    toast.show();
+                                }
+                            });
+                            Log.e("aizhiqiang", "current page is" + titlelist.get(i).first);
+                            break;
+                        }
+                    }
+                }
+            }
+        }, 300, 100);
+
+
+        //set textview to last finished position
         viewtest.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                viewtest.seektopos(statusinfo_.progress);
+                if(statusinfo_ != null ) {
+                    viewtest.seektopos(statusinfo_.progress);
+                }
             }
         });
+
+        //Enable 启EyeDetector by eyeswitch status
         ((CheckBox) findViewById(R.id.eyeswitch)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
