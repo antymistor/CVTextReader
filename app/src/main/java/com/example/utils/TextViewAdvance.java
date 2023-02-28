@@ -8,7 +8,6 @@ import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Pair;
-import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.ViewConfiguration;
 import android.view.animation.Interpolator;
@@ -19,8 +18,6 @@ import androidx.appcompat.widget.AppCompatTextView;
 import androidx.core.view.MotionEventCompat;
 import androidx.core.view.VelocityTrackerCompat;
 import androidx.core.view.ViewCompat;
-
-import com.example.utils.FileCharsetDetector;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,7 +26,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
@@ -100,8 +96,8 @@ public class TextViewAdvance extends AppCompatTextView {
             @Override
             public void run() {
                 if(isAutoMoving || movingmode != AutoMovingMode.None ){
-                    scrollBy(0, movingmode == AutoMovingMode.Down ? 50 :
-                                   movingmode == AutoMovingMode.UP ? -50 : 1);
+                    scrollBy(0, movingmode == AutoMovingMode.Down ? 80 :
+                                   movingmode == AutoMovingMode.UP ? -80 : 1);
                     if(mListener!= null && mHeight > 0) {
                         mListener.onProcess(1.0f * getScrollY() / getLineCount() / getLineHeight());
                     }

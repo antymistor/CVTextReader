@@ -103,6 +103,7 @@ public class FullscreenActivity extends AppCompatActivity {
         TextViewCreater.TextViewPara para = new TextViewCreater.TextViewPara();
         para.txtpath = FilePath;
         para.basecontext = this;
+        para.fontsize = 16;
         para.listener = new TextViewAdvance.IProcessListener() {
             @Override
             public void onProcess(float progress) {

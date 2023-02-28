@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:theme="@android:style/Theme.NoTitleBar"
+    android:background="#ccaa88"
     tools:context=".FullscreenActivity"
     tools:visibility="true"
     android:orientation="vertical">
