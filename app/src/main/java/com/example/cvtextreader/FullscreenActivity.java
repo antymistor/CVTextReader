@@ -146,6 +146,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     statusinfo_.progress = progress;
                     progressbar.setProgress((int) (statusinfo_.progress * 100));
                     fakeFrameSaveStatus = FakeFrameSaveStatus.need_save_but_do_not_save;
+                    fakeview.setVisibility(View.GONE);
                 }
             }
             @Override
@@ -157,7 +158,7 @@ public class FullscreenActivity extends AppCompatActivity {
             public void onGetList(ArrayList<Pair<String, Float>> list, long linesum_) {
                 titlelist = list;
                 linesum = linesum_;
-                fakeview.setVisibility(View.GONE);
+                //fakeview.setVisibility(View.GONE);
             }
         };
         viewtest = TextViewCreater.createTextView(para);
