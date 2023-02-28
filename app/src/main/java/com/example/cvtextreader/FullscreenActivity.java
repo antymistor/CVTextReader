@@ -1,29 +1,23 @@
 package com.example.cvtextreader;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
-import android.Manifest;
 import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.net.Uri;
-import android.os.Build;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Looper;
-import android.provider.Settings;
 import android.util.Log;
 
 import android.util.Pair;
 import android.util.Size;
-import android.view.Gravity;
+import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
@@ -35,6 +29,7 @@ import com.google.gson.Gson;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -49,6 +44,7 @@ public class FullscreenActivity extends AppCompatActivity {
     public class statusinfo{
         float progress = 0;
     }
+    private FrameLayout parentlayout  = null;
     private FrameLayout baselayout  = null;
     private SeekBar     progressbar = null;
     private statusinfo statusinfo_ = null;
@@ -60,6 +56,45 @@ public class FullscreenActivity extends AppCompatActivity {
     ArrayList<Pair<String, Float>> titlelist;
     long linesum = 0;
     Context mContext;
+    Bitmap fakeFrame;
+    TextViewAdvance viewtest;
+
+    ImageView fakeview;
+    String fakepicpath = Environment.getExternalStorageDirectory().getPath() + "/DCIM/frame.png";
+    private void saveFakeFrame(){
+        if(viewtest != null) {
+            viewtest.setDrawingCacheEnabled(true);
+            viewtest.buildDrawingCache();
+            fakeFrame = viewtest.getDrawingCache();
+            try {
+                fakeFrame.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(
+                        new File(fakepicpath)));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            viewtest.destroyDrawingCache();
+        }
+    }
+    private void showFakeFrame(){
+        File file = new File(fakepicpath);
+        if(file.exists()) {
+            Bitmap map = BitmapFactory.decodeFile(fakepicpath);
+            BitmapDrawable dr = new BitmapDrawable(map);
+            parentlayout = findViewById(R.id.parentlayout);
+            fakeview = new ImageView(this);
+            fakeview.setBackground(dr);
+            fakeview.setVisibility(View.VISIBLE);
+            parentlayout.addView(fakeview);
+            Log.e("showFakeFrame","showFakeFrame");
+        }
+    }
+
+    enum FakeFrameSaveStatus{
+        has_saved,
+        need_save_but_do_not_save,
+        need_save_now
+    }
+    FakeFrameSaveStatus fakeFrameSaveStatus = FakeFrameSaveStatus.has_saved;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,8 +104,8 @@ public class FullscreenActivity extends AppCompatActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         getWindow().setStatusBarColor(Color.parseColor("#ccaa88"));
-
         setContentView(R.layout.activity_fullscreen);
+        showFakeFrame();
         baselayout = findViewById(R.id.baselayout);
         progressbar = findViewById(R.id.processbar);
         FilePath = getIntent().getStringExtra("filePath");
@@ -110,6 +145,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 if (statusinfo_ != null) {
                     statusinfo_.progress = progress;
                     progressbar.setProgress((int) (statusinfo_.progress * 100));
+                    fakeFrameSaveStatus = FakeFrameSaveStatus.need_save_but_do_not_save;
                 }
             }
             @Override
@@ -121,9 +157,10 @@ public class FullscreenActivity extends AppCompatActivity {
             public void onGetList(ArrayList<Pair<String, Float>> list, long linesum_) {
                 titlelist = list;
                 linesum = linesum_;
+                fakeview.setVisibility(View.GONE);
             }
         };
-        TextViewAdvance viewtest = TextViewCreater.createTextView(para);
+        viewtest = TextViewCreater.createTextView(para);
         baselayout.addView(viewtest);
 
         //set progressbar callback
@@ -133,6 +170,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 if (fromUser) {
                     statusinfo_.progress = 1.0f * progress / 100;
                     viewtest.seektopos(statusinfo_.progress);
+                    fakeFrameSaveStatus = FakeFrameSaveStatus.need_save_but_do_not_save;
                 }
             }
             @Override
@@ -141,10 +179,10 @@ public class FullscreenActivity extends AppCompatActivity {
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
-        //write current progress to disk
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
+                //write current progress to disk
                 if(progressfile.exists() && statusinfo_ != null){
                     try {
                         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(progressfile,false), "UTF-8"));
@@ -156,43 +194,41 @@ public class FullscreenActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 }
-            }
-        }, 1000, 5000);
-
-
-        //show page title by toast
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                if(titlelist != null && titlelist.size() > 0     &&
-                         linesum > 0 && statusinfo_!= null       &&
-                (statusinfo_.progress * linesum >= nextpageprocess ||
-                statusinfo_.progress * linesum < lastpageprocess)){
+                //write current fake frame to disk
+                if(fakeFrameSaveStatus == FakeFrameSaveStatus.need_save_but_do_not_save){
+                    fakeFrameSaveStatus = FakeFrameSaveStatus.need_save_now;
+                }else if(fakeFrameSaveStatus == FakeFrameSaveStatus.need_save_now){
+                    saveFakeFrame();
+                    fakeFrameSaveStatus = FakeFrameSaveStatus.has_saved;
+                    Log.e("saveFakeFrame", "saveFakeFrame now !!");
+                }
+                //show page title by toast
+                if(titlelist != null && titlelist.size() > 0 && linesum > 0 && statusinfo_!= null  &&
+                  (statusinfo_.progress * linesum >= nextpageprocess || statusinfo_.progress * linesum < lastpageprocess)){
                     for(int i = 0 ; i != titlelist.size() ; ++i){
                         if( 1.0f * titlelist.get(i).second / linesum < statusinfo_.progress &&
-                                ((i + 1) == titlelist.size() || 1.0f * titlelist.get(i + 1).second / linesum > statusinfo_.progress)){
-                            lastpageprocess = titlelist.get(i).second;
-                            if((i + 1) == titlelist.size()){
-                                nextpageprocess = (float)linesum;
-                            }else{
-                                nextpageprocess = titlelist.get(i+1).second;
-                            }
-                            int finalI = i;
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast toast = Toast.makeText(mContext, titlelist.get(finalI).first, Toast.LENGTH_SHORT);
-                                    toast.show();
+                          ((i + 1) == titlelist.size() || 1.0f * titlelist.get(i + 1).second / linesum > statusinfo_.progress)){
+                                lastpageprocess = titlelist.get(i).second;
+                                if((i + 1) == titlelist.size()){
+                                    nextpageprocess = (float)linesum;
+                                }else{
+                                    nextpageprocess = titlelist.get(i+1).second;
                                 }
-                            });
-                            Log.e("aizhiqiang", "current page is" + titlelist.get(i).first);
-                            break;
+                                int finalI = i;
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast toast = Toast.makeText(mContext, titlelist.get(finalI).first, Toast.LENGTH_SHORT);
+                                        toast.show();
+                                    }
+                                });
+                                Log.e("aizhiqiang", "current page is" + titlelist.get(i).first);
+                                break;
                         }
                     }
                 }
             }
-        }, 300, 100);
-
+        }, 100, 100);
 
         //set textview to last finished position
         viewtest.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
