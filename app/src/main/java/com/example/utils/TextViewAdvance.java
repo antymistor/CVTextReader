@@ -141,12 +141,12 @@ public class TextViewAdvance extends AppCompatTextView {
                             }
                             linecount += Math.ceil(1.0f* line.length() / fontsperLine) ;
                         }
-                        if(mListener!=null){
-                            mListener.onGetList(list, linecount);
-                        }
                         setText(sb.toString());
                         mHeight = getLineHeight() * getLineCount();
                         Log.e("aizhiqing", "aizhiqiang height = " + mHeight);
+                        if(mListener!=null){
+                            mListener.onGetList(list, linecount);
+                        }
                     }catch (IOException e) {
                         e.printStackTrace();
                     }

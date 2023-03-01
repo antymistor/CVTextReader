@@ -38,6 +38,8 @@ import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 import com.example.utils.EyeDetector;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 //import com.example.cvtextreader.databinding.ActivityFullscreenBinding;
 
 public class FullscreenActivity extends AppCompatActivity {
@@ -58,6 +60,7 @@ public class FullscreenActivity extends AppCompatActivity {
     Context mContext;
     Bitmap fakeFrame;
     TextViewAdvance viewtest;
+    boolean isfirstload = true;
 
     ImageView fakeview;
     String fakepicpath = Environment.getExternalStorageDirectory().getPath() + "/DCIM/frame.png";
@@ -96,9 +99,26 @@ public class FullscreenActivity extends AppCompatActivity {
     }
     FakeFrameSaveStatus fakeFrameSaveStatus = FakeFrameSaveStatus.has_saved;
 
+    private static boolean isJson(String content) {
+        JsonElement jsonElement;
+        try {
+            jsonElement = new JsonParser().parse(content);
+        } catch (Exception e) {
+            return false;
+        }
+        if (jsonElement == null) {
+            return false;
+        }
+        if (!jsonElement.isJsonObject()) {
+            return false;
+        }
+        return true;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        isfirstload = true;
         mContext = this;
         Objects.requireNonNull(getSupportActionBar()).hide();
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
@@ -122,11 +142,18 @@ public class FullscreenActivity extends AppCompatActivity {
                     byte[] buffer = new byte[len];
                     fin.read(buffer);
                     Gson gsonin = new Gson();
-                    statusinfo_ = gsonin.fromJson(new String(buffer), statusinfo.class);
-                    progressbar.setProgress((int) (statusinfo_.progress * 100));
+                    String jstr = new String(buffer);
+                    if(isJson(jstr)) {
+                        statusinfo_ = gsonin.fromJson(jstr, statusinfo.class);
+                        progressbar.setProgress((int) (statusinfo_.progress * 100));
+                        Log.e("aizhiqiang","read json success" + String.valueOf(statusinfo_.progress) );
+                    }else{
+                        Log.e("aizhiqiang","read json fail");
+                    }
                 }
             }
             if (statusinfo_ == null) {
+                Log.e("aizhiqiang","read json fail");
                 statusinfo_ = new statusinfo();
                 statusinfo_.progress = 0;
             }
@@ -235,8 +262,10 @@ public class FullscreenActivity extends AppCompatActivity {
         viewtest.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                if(statusinfo_ != null ) {
+                if(statusinfo_ != null && isfirstload) {
+                    Log.e("aizhiqiang", "first set progress" + String.valueOf(statusinfo_.progress));
                     viewtest.seektopos(statusinfo_.progress);
+                    isfirstload = false;
                 }
             }
         });
