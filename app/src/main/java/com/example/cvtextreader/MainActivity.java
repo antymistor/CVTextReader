@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
         }
         setContentView(R.layout.activity_main);
         CheckPermission();
-        findViewById(R.id.button).setBackgroundColor(Color.parseColor("#1c76c2"));
+        findViewById(R.id.button).setBackgroundColor(Color.parseColor("#00000000"));
         goNextpage();
     }
 
