@@ -12,6 +12,7 @@ import android.os.Environment;
 import android.os.FileUtils;
 import android.provider.Settings;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 
 import androidx.annotation.RequiresApi;
@@ -71,9 +72,22 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Objects.requireNonNull(getSupportActionBar()).hide();
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        getWindow().setStatusBarColor(Color.parseColor("#1c76c2"));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            int flagTranslucentStatus = WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
+            int flagTranslucentNavigation = WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                Window window = getWindow();
+                WindowManager.LayoutParams attributes = window.getAttributes();
+                attributes.flags |= flagTranslucentNavigation;
+                window.setAttributes(attributes);
+                getWindow().setStatusBarColor(Color.TRANSPARENT);
+            } else {
+                Window window = getWindow();
+                WindowManager.LayoutParams attributes = window.getAttributes();
+                attributes.flags |= flagTranslucentStatus | flagTranslucentNavigation;
+                window.setAttributes(attributes);
+            }
+        }
         setContentView(R.layout.activity_main);
         CheckPermission();
         findViewById(R.id.button).setBackgroundColor(Color.parseColor("#1c76c2"));
