@@ -5,21 +5,24 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 
 import android.util.Pair;
 import android.util.Size;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.SeekBar;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import com.example.utils.EyeDetector2;
 import com.example.utils.EyeDetectorbase;
@@ -87,6 +90,7 @@ public class FullscreenActivity extends AppCompatActivity {
             fakeview.setBackground(dr);
             fakeview.setVisibility(View.VISIBLE);
             parentlayout.addView(fakeview);
+            fakeview.bringToFront();
             Log.e("showFakeFrame","showFakeFrame");
         }
     }
@@ -114,15 +118,30 @@ public class FullscreenActivity extends AppCompatActivity {
         return true;
     }
 
+    TextView pageshow;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         isfirstload = true;
         mContext = this;
         Objects.requireNonNull(getSupportActionBar()).hide();
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        getWindow().setStatusBarColor(Color.parseColor("#ccaa88"));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            int flagTranslucentStatus = WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
+            int flagTranslucentNavigation = WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                Window window = getWindow();
+                WindowManager.LayoutParams attributes = window.getAttributes();
+                attributes.flags |= flagTranslucentNavigation;
+                window.setAttributes(attributes);
+                getWindow().setStatusBarColor(Color.TRANSPARENT);
+            } else {
+                Window window = getWindow();
+                WindowManager.LayoutParams attributes = window.getAttributes();
+                attributes.flags |= flagTranslucentStatus | flagTranslucentNavigation;
+                window.setAttributes(attributes);
+            }
+        }
         setContentView(R.layout.activity_fullscreen);
         showFakeFrame();
         baselayout = findViewById(R.id.baselayout);
@@ -205,6 +224,7 @@ public class FullscreenActivity extends AppCompatActivity {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
+        progressbar.bringToFront();
 
         new Timer().schedule(new TimerTask() {
             @Override
@@ -245,8 +265,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        Toast toast = Toast.makeText(mContext, titlelist.get(finalI).first, Toast.LENGTH_SHORT);
-                                        toast.show();
+                                        pageshow.setText(titlelist.get(finalI).first);
                                     }
                                 });
                                 Log.e("aizhiqiang", "current page is" + titlelist.get(i).first);
@@ -304,6 +323,14 @@ public class FullscreenActivity extends AppCompatActivity {
                 }
             }
         });
+        ((CheckBox) findViewById(R.id.eyeswitch)).bringToFront();
+
+        pageshow = findViewById(R.id.pageshow);
+        pageshow.setTextSize(13);
+        pageshow.setGravity(Gravity.CENTER);
+        pageshow.setTextColor(Color.parseColor("#000000"));
     }
+
+
 
 }
