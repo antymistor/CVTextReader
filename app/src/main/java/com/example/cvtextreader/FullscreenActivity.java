@@ -40,7 +40,6 @@ import java.util.TimerTask;
 import com.example.utils.EyeDetector;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-//import com.example.cvtextreader.databinding.ActivityFullscreenBinding;
 
 public class FullscreenActivity extends AppCompatActivity {
     public class statusinfo{
