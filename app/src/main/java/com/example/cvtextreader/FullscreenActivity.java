@@ -6,9 +6,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 
 import android.util.Pair;
@@ -17,8 +15,6 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -38,7 +34,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -74,7 +69,7 @@ public class FullscreenActivity extends AppCompatActivity {
     static final int ProcessBarMax = 2000;
 
     ImageView fakeview;
-    String fakepicpath = Environment.getExternalStorageDirectory().getPath() + "/DCIM/frame.png";
+    String fakepicpath;
     private void saveFakeFrame(){
         if(viewtest != null) {
             viewtest.setDrawingCacheEnabled(true);
@@ -152,6 +147,7 @@ public class FullscreenActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         isfirstload = true;
         mContext = this;
+        fakepicpath = getFilesDir().getPath() + "/frame.png";
 
         //pretty layout
         Objects.requireNonNull(getSupportActionBar()).hide();
@@ -169,7 +165,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
         //get and set status from disk
         try {
-            progressfile = new File(Environment.getExternalStorageDirectory().getPath() + "/DCIM/progress.json");
+            progressfile = new File(getFilesDir().getPath() + "/progress.json");
             if (!progressfile.exists() && !progressfile.createNewFile()) {
                 progressfile = null;
             } else {

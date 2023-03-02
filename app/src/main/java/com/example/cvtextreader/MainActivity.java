@@ -5,17 +5,12 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.FileUtils;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.documentfile.provider.DocumentFile;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
     String filename = "";
     public void goNextpage(){
         Intent intent = new Intent(this, FullscreenActivity.class);
-        intent.putExtra("filePath", Environment.getExternalStorageDirectory().getPath() +"/DCIM/cache.txt");
+        intent.putExtra("filePath", getFilesDir().getPath() +"/cache.txt");
         intent.putExtra("fileName", filename);
         startActivity(intent);
     }
@@ -56,8 +51,7 @@ public class MainActivity extends AppCompatActivity {
             Uri uri = data.getData();
             try {
                 InputStream is = getContentResolver().openInputStream(uri);
-                File cache = new File(Environment.getExternalStorageDirectory().getPath() +"/DCIM/cache.txt");
-                FileOutputStream fos = new FileOutputStream(cache);
+                FileOutputStream fos = openFileOutput("cache.txt", 0);
                 FileUtils.copy(is, fos);
                 fos.close();
                 is.close();
