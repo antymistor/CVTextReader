@@ -15,7 +15,7 @@
     </style>
 
     <style name="Theme.CVTextReader.Fullscreen" parent="Theme.CVTextReader">
-        <item name="android:windowBackground">@drawable/back2</item>
+        <item name="android:windowBackground">@drawable/back3</item>
         <item name="android:windowNoTitle">true</item>
     </style>
 
