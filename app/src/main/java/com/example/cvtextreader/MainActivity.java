@@ -80,7 +80,6 @@ public class MainActivity extends AppCompatActivity {
         getWindow().setAttributes(attributes);
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         setContentView(R.layout.activity_main);
-        CheckPermission();
         findViewById(R.id.button).setBackgroundColor(Color.parseColor("#00000000"));
         goNextpage();
     }

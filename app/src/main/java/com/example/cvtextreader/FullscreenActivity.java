@@ -1,13 +1,22 @@
 package com.example.cvtextreader;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.Settings;
 import android.util.Log;
 
 import android.util.Pair;
@@ -46,6 +55,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.example.utils.EyeDetector;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.example.utils.Permission;
 
 public class FullscreenActivity extends AppCompatActivity {
     public class statusinfo{
@@ -140,10 +150,18 @@ public class FullscreenActivity extends AppCompatActivity {
     boolean isEyeCtrON = false;
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        Permission.checkPermission(this);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         isfirstload = true;
         mContext = this;
+
+        //pretty layout
         Objects.requireNonNull(getSupportActionBar()).hide();
         WindowManager.LayoutParams attributes = getWindow().getAttributes();
         attributes.flags |= WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION;
@@ -151,6 +169,8 @@ public class FullscreenActivity extends AppCompatActivity {
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         setContentView(R.layout.activity_fullscreen);
         showFakeFrame();
+
+        //get para
         baselayout = findViewById(R.id.baselayout);
         progressbar = findViewById(R.id.processbar);
         FilePath = getIntent().getStringExtra("filePath");
