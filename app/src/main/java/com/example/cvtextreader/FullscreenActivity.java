@@ -100,11 +100,11 @@ public class FullscreenActivity extends AppCompatActivity {
         if(viewtest!=null && pageshow!=null) {
             if (statusinfo_.islightmode) {
                 viewtest.setThemeindex(0);
-                pageshow.setBackgroundColor(Color.parseColor("#e1bb78"));
+                pageshow.setBackgroundColor(Color.parseColor("#cce1bb78"));
                 pageshow.setTextColor(Color.parseColor("#000000"));
             } else {
                 viewtest.setThemeindex(1);
-                pageshow.setBackgroundColor(Color.parseColor("#111111"));
+                pageshow.setBackgroundColor(Color.parseColor("#cc111111"));
                 pageshow.setTextColor(Color.parseColor("#555555"));
             }
         }
