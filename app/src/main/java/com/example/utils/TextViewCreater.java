@@ -3,6 +3,8 @@ import android.content.Context;
 import android.graphics.Color;
 import android.os.Environment;
 
+import java.util.ArrayList;
+
 
 /**
  * Created by aizhiqiang on 2023/2/20
@@ -12,16 +14,14 @@ import android.os.Environment;
 public class TextViewCreater {
     public static class TextViewPara{
         public int fontsize        =  15;
-        public int textcolor       = Color.parseColor("#000000");
-        public int backgroundcolor = Color.parseColor("#ccaa88");
+        public ArrayList<TextViewAdvance.themeitem> themelist = new ArrayList<>();
         public Context basecontext;
         public String txtpath      =  Environment.getExternalStorageDirectory().getPath() +"/test.txt";
         public TextViewAdvance.IProcessListener listener = null;
     }
     public static TextViewAdvance createTextView(TextViewPara para){
         TextViewAdvance view = new TextViewAdvance(para.basecontext);
-        view.setBackgroundColor(para.backgroundcolor);
-        view.setTextColor(para.textcolor);
+        view.setBacklist(para.themelist);
         view.setTextSize(para.fontsize);
         view.setListener(para.listener);
         view.pushTxt(para.txtpath);

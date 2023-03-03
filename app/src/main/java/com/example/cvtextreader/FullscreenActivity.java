@@ -47,6 +47,7 @@ import com.google.gson.JsonParser;
 public class FullscreenActivity extends AppCompatActivity {
     public class statusinfo{
         float progress = 0;
+        boolean islightmode = true;
     }
     private FrameLayout parentlayout  = null;
     private FrameLayout baselayout  = null;
@@ -92,6 +93,20 @@ public class FullscreenActivity extends AppCompatActivity {
             parentlayout.addView(fakeview);
             fakeview.bringToFront();
             Log.e("showFakeFrame","showFakeFrame");
+        }
+    }
+
+    private void setlightmode(){
+        if(viewtest!=null && pageshow!=null) {
+            if (statusinfo_.islightmode) {
+                viewtest.setThemeindex(0);
+                pageshow.setBackgroundColor(Color.parseColor("#e1bb78"));
+                pageshow.setTextColor(Color.parseColor("#000000"));
+            } else {
+                viewtest.setThemeindex(1);
+                pageshow.setBackgroundColor(Color.parseColor("#111111"));
+                pageshow.setTextColor(Color.parseColor("#555555"));
+            }
         }
     }
 
@@ -184,6 +199,10 @@ public class FullscreenActivity extends AppCompatActivity {
         para.txtpath = FilePath;
         para.basecontext = this;
         para.fontsize = 16;
+        para.themelist = new ArrayList<TextViewAdvance.themeitem>() {{
+            add(new TextViewAdvance.themeitem(R.drawable.backlight, Color.parseColor("#000000"), -1));
+            add(new TextViewAdvance.themeitem(R.drawable.backdark, Color.parseColor("#555555"), -1));
+        }};
         para.listener = new TextViewAdvance.IProcessListener() {
             @Override
             public void onProcess(float progress) {
@@ -207,6 +226,7 @@ public class FullscreenActivity extends AppCompatActivity {
             }
         };
         viewtest = TextViewCreater.createTextView(para);
+        viewtest.setThemeindex(0);
         baselayout.addView(viewtest);
 
         //set progressbar callback
@@ -328,7 +348,17 @@ public class FullscreenActivity extends AppCompatActivity {
         pageshow = findViewById(R.id.pageshow);
         pageshow.setTextSize(13);
         pageshow.setGravity(Gravity.CENTER);
-        pageshow.setTextColor(Color.parseColor("#000000"));
+        pageshow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(statusinfo_ != null) {
+                    statusinfo_.islightmode = !statusinfo_.islightmode;
+                    setlightmode();
+                    viewtest.seektopos(statusinfo_.progress);
+                }
+            }
+        });
+        setlightmode();
     }
 
 

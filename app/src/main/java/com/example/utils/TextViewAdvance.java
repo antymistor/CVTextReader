@@ -96,14 +96,14 @@ public class TextViewAdvance extends AppCompatTextView {
             @Override
             public void run() {
                 if(isAutoMoving || movingmode != AutoMovingMode.None ){
-                    scrollBy(0, movingmode == AutoMovingMode.Down ? 80 :
-                                   movingmode == AutoMovingMode.UP ? -80 : 1);
+                    scrollBy(0, movingmode == AutoMovingMode.Down ? 160 :
+                                   movingmode == AutoMovingMode.UP ? -160 : 1);
                     if(mListener!= null && mHeight > 0) {
                         mListener.onProcess(1.0f * getScrollY() / getLineCount() / getLineHeight());
                     }
                 }
             }
-        }, 1000, 20);
+        }, 1000, 40);
     }
 
     public void enableEyeAutoMoving(AutoMovingMode mode){
@@ -171,6 +171,37 @@ public class TextViewAdvance extends AppCompatTextView {
     public void setTextSize(float size) {
         super.setTextSize(size);
         fontsize = size;
+    }
+
+    private int themeindex = 0;
+    public static class themeitem{
+        int backResId = -1;
+        int fontcolor = -1;
+        int backgroundcolor = -1;
+        public themeitem (int id, int font, int back){
+            backResId = id;
+            fontcolor = font;
+            backgroundcolor = back;
+        }
+    }
+    private ArrayList<themeitem> themelist;
+    public void setBacklist(ArrayList<themeitem> list){
+        themelist = list;
+        setThemeindex(0);
+    }
+    public void setThemeindex(int index){
+        if(themelist != null){
+            themeindex = Math.max(0, Math.min(index , themelist.size() - 1));
+            if(themelist.get(themeindex).backgroundcolor != -1){
+                setBackgroundColor(themelist.get(themeindex).backgroundcolor);
+            }
+            if(themelist.get(themeindex).fontcolor != -1){
+                setTextColor(themelist.get(themeindex).fontcolor);
+            }
+            if(themelist.get(themeindex).backResId != -1){
+                setBackgroundResource(themelist.get(themeindex).backResId);
+            }
+        }
     }
 
     @Override
