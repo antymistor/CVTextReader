@@ -73,8 +73,7 @@ public class FullscreenActivity extends AppCompatActivity {
             viewtest.buildDrawingCache();
             fakeFrame = viewtest.getDrawingCache();
             try {
-                fakeFrame.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(
-                        new File(fakepicpath)));
+                fakeFrame.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(fakepicpath));
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -84,11 +83,9 @@ public class FullscreenActivity extends AppCompatActivity {
     private void showFakeFrame(){
         File file = new File(fakepicpath);
         if(file.exists()) {
-            Bitmap map = BitmapFactory.decodeFile(fakepicpath);
-            BitmapDrawable dr = new BitmapDrawable(map);
             parentlayout = findViewById(R.id.parentlayout);
             fakeview = new ImageView(this);
-            fakeview.setBackground(dr);
+            fakeview.setBackground( new BitmapDrawable(BitmapFactory.decodeFile(fakepicpath)));
             fakeview.setVisibility(View.VISIBLE);
             parentlayout.addView(fakeview);
             fakeview.bringToFront();
@@ -141,22 +138,10 @@ public class FullscreenActivity extends AppCompatActivity {
         isfirstload = true;
         mContext = this;
         Objects.requireNonNull(getSupportActionBar()).hide();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            int flagTranslucentStatus = WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
-            int flagTranslucentNavigation = WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                Window window = getWindow();
-                WindowManager.LayoutParams attributes = window.getAttributes();
-                attributes.flags |= flagTranslucentNavigation;
-                window.setAttributes(attributes);
-                getWindow().setStatusBarColor(Color.TRANSPARENT);
-            } else {
-                Window window = getWindow();
-                WindowManager.LayoutParams attributes = window.getAttributes();
-                attributes.flags |= flagTranslucentStatus | flagTranslucentNavigation;
-                window.setAttributes(attributes);
-            }
-        }
+        WindowManager.LayoutParams attributes = getWindow().getAttributes();
+        attributes.flags |= WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION;
+        getWindow().setAttributes(attributes);
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
         setContentView(R.layout.activity_fullscreen);
         showFakeFrame();
         baselayout = findViewById(R.id.baselayout);
