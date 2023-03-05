@@ -4,8 +4,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -15,7 +15,6 @@ import android.util.Size;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewTreeObserver;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -26,6 +25,7 @@ import android.widget.TextView;
 
 import com.example.utils.EyeDetector2;
 import com.example.utils.EyeDetectorbase;
+import com.example.utils.SeekbarAdvance;
 import com.example.utils.TextViewCreater;
 import com.example.utils.TextViewAdvance;
 import com.google.gson.Gson;
@@ -51,7 +51,7 @@ public class FullscreenActivity extends AppCompatActivity {
     }
     private FrameLayout parentlayout  = null;
     private FrameLayout baselayout  = null;
-    private SeekBar     progressbar = null;
+    private SeekbarAdvance progressbar = null;
     private statusinfo statusinfo_ = null;
     private Float lastpageprocess = 0.0f;
     private Float nextpageprocess = 0.0f;
@@ -64,6 +64,7 @@ public class FullscreenActivity extends AppCompatActivity {
     Bitmap fakeFrame;
     TextViewAdvance viewtest;
     boolean isfirstload = true;
+    static final int ProcessBarMax = 2000;
 
     ImageView fakeview;
     String fakepicpath = Environment.getExternalStorageDirectory().getPath() + "/DCIM/frame.png";
@@ -131,6 +132,7 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     TextView pageshow;
+    boolean isEyeCtrON = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -163,7 +165,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     String jstr = new String(buffer);
                     if(isJson(jstr)) {
                         statusinfo_ = gsonin.fromJson(jstr, statusinfo.class);
-                        progressbar.setProgress((int) (statusinfo_.progress * 100));
+                        progressbar.setProgress((int) (statusinfo_.progress * ProcessBarMax));
                         Log.e("aizhiqiang","read json success" + String.valueOf(statusinfo_.progress) );
                     }else{
                         Log.e("aizhiqiang","read json fail");
@@ -193,7 +195,7 @@ public class FullscreenActivity extends AppCompatActivity {
             public void onProcess(float progress) {
                 if (statusinfo_ != null) {
                     statusinfo_.progress = progress;
-                    progressbar.setProgress((int) (statusinfo_.progress * 100));
+                    progressbar.setProgress((int) (statusinfo_.progress * ProcessBarMax));
                     fakeFrameSaveStatus = FakeFrameSaveStatus.need_save_but_do_not_save;
                     fakeview.setVisibility(View.GONE);
                 }
@@ -214,12 +216,53 @@ public class FullscreenActivity extends AppCompatActivity {
         viewtest.setThemeindex(0);
         baselayout.addView(viewtest);
 
-        //set progressbar callback
+        //set progressbar
+        progressbar.setMax(ProcessBarMax);
+        progressbar.getThumb().setColorFilter(Color.parseColor("#ff00ff00"), PorterDuff.Mode.SRC_IN);
+        progressbar.setOnClickThumbListener(new SeekbarAdvance.OnClickThumbListener() {
+            @Override
+            public void onClickThumb() {
+                isEyeCtrON = !isEyeCtrON;
+                if(isEyeCtrON){
+                    progressbar.getThumb().setColorFilter(Color.parseColor("#ffff0000"), PorterDuff.Mode.SRC_IN);
+                    if(detector == null){
+                        EyeDetector.EyeDetectorStatus intitpara = new EyeDetector.EyeDetectorStatus();
+                        intitpara.inputframesize = new Size(720, 1280);
+                        intitpara.maxfacecnt = 1;
+                        detector = new EyeDetector2(intitpara);
+                        detector.setListener(new EyeDetectorbase.IEyeStatusListener() {
+                            @Override
+                            public void onEvent(EyeDetectorbase.eyeEvent event) {
+                                if (event == EyeDetectorbase.eyeEvent.EyeAllOpen) {
+                                    viewtest.enableEyeAutoMoving(TextViewAdvance.AutoMovingMode.None);
+                                    Log.e("eyestatus", "eyestatus changed --> EyeOpen");
+                                } else if (event == EyeDetectorbase.eyeEvent.LeftEyeClose) {
+                                    viewtest.enableEyeAutoMoving(TextViewAdvance.AutoMovingMode.Down);
+                                    Log.e("eyestatus", "eyestatus changed --> LeftEyeClose");
+                                } else if (event == EyeDetectorbase.eyeEvent.RightEyeClose) {
+                                    viewtest.enableEyeAutoMoving(TextViewAdvance.AutoMovingMode.UP);
+                                    Log.e("eyestatus", "eyestatus changed --> RightEyeClose");
+                                }
+                            }
+                        });
+                    }
+                }else{
+                    progressbar.getThumb().setColorFilter(Color.parseColor("#ff00ff00"), PorterDuff.Mode.SRC_IN);
+                    if(detector != null){
+                        detector.destroy();
+                        detector = null;
+                    }
+                    viewtest.enableEyeAutoMoving(TextViewAdvance.AutoMovingMode.None);
+                }
+            }
+        });
+
+
         progressbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser) {
-                    statusinfo_.progress = 1.0f * progress / 100;
+                    statusinfo_.progress = 1.0f * progress / ProcessBarMax;
                     viewtest.seektopos(statusinfo_.progress);
                     fakeFrameSaveStatus = FakeFrameSaveStatus.need_save_but_do_not_save;
                 }
@@ -292,43 +335,6 @@ public class FullscreenActivity extends AppCompatActivity {
                 }
             }
         });
-
-        //Enable 启EyeDetector by eyeswitch status
-        ((CheckBox) findViewById(R.id.eyeswitch)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
-                    if(detector == null){
-                        EyeDetector.EyeDetectorStatus intitpara = new EyeDetector.EyeDetectorStatus();
-                        intitpara.inputframesize = new Size(720, 1280);
-                        intitpara.maxfacecnt = 1;
-                        detector = new EyeDetector2(intitpara);
-                        detector.setListener(new EyeDetectorbase.IEyeStatusListener() {
-                            @Override
-                            public void onEvent(EyeDetectorbase.eyeEvent event) {
-                                if (event == EyeDetectorbase.eyeEvent.EyeAllOpen) {
-                                    viewtest.enableEyeAutoMoving(TextViewAdvance.AutoMovingMode.None);
-                                    Log.e("eyestatus", "eyestatus changed --> EyeOpen");
-                                } else if (event == EyeDetectorbase.eyeEvent.LeftEyeClose) {
-                                    viewtest.enableEyeAutoMoving(TextViewAdvance.AutoMovingMode.Down);
-                                    Log.e("eyestatus", "eyestatus changed --> LeftEyeClose");
-                                } else if (event == EyeDetectorbase.eyeEvent.RightEyeClose) {
-                                    viewtest.enableEyeAutoMoving(TextViewAdvance.AutoMovingMode.UP);
-                                    Log.e("eyestatus", "eyestatus changed --> RightEyeClose");
-                                }
-                            }
-                        });
-                    }
-                }else{
-                    if(detector != null){
-                        detector.destroy();
-                        detector = null;
-                    }
-                    viewtest.enableEyeAutoMoving(TextViewAdvance.AutoMovingMode.None);
-                }
-            }
-        });
-        ((CheckBox) findViewById(R.id.eyeswitch)).bringToFront();
 
         pageshow = findViewById(R.id.pageshow);
         pageshow.setTextSize(13);

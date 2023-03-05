@@ -2,6 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/parentlayout"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:theme="@android:style/Theme.NoTitleBar"
@@ -16,28 +17,26 @@
         android:layout_height="match_parent"
         android:theme="@android:style/Theme.NoTitleBar" >
     </FrameLayout>
-    <SeekBar
-        android:id="@+id/processbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top"
-        android:layout_marginEnd="10dp"
-        android:layout_marginTop="25dp"
-        android:alpha="0.7" />
-    <CheckBox
-        android:id="@+id/eyeswitch"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:layout_marginEnd="-10dp"
-        android:layout_marginTop="10dp"
-        android:background="#00000000"
-        android:scaleX="0.5"
-        android:scaleY="0.5" />
     <TextView
         android:id="@+id/pageshow"
+        android:ems="1"
         android:layout_gravity="bottom"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
+
+    <com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper
+        android:layout_marginBottom="40dp"
+        android:layout_marginTop="50dp"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:alpha="0.4">
+        <com.example.utils.SeekbarAdvance
+            android:progressDrawable="@drawable/seekbar"
+            android:id="@+id/processbar"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:splitTrack="false"
+            app:seekBarRotation="CW90" />
+    </com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBarWrapper>
 
 </FrameLayout>
