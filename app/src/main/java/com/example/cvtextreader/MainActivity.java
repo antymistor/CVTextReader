@@ -19,6 +19,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.documentfile.provider.DocumentFile;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -34,6 +35,7 @@ import java.util.Objects;
 public class MainActivity extends AppCompatActivity {
     private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 0x01;
     private static final int REQUEST_CAMERA_CODE = 0x100;
+    String filename = "";
     private Boolean CheckPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // 安卓11，判断有没有“所有文件访问权限”权限
@@ -65,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
     public void goNextpage(){
         Intent intent = new Intent(this, FullscreenActivity.class);
         intent.putExtra("filePath", Environment.getExternalStorageDirectory().getPath() +"/DCIM/cache.txt");
+        intent.putExtra("fileName", filename);
         startActivity(intent);
     }
 
@@ -95,6 +98,10 @@ public class MainActivity extends AppCompatActivity {
                 FileUtils.copy(is, fos);
                 fos.close();
                 is.close();
+                DocumentFile documentFile = DocumentFile.fromSingleUri(this, uri);
+                if(documentFile != null) {
+                    filename = documentFile.getName();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }

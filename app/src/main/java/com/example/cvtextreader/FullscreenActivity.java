@@ -37,9 +37,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
+
 import com.example.utils.EyeDetector;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -48,6 +51,8 @@ public class FullscreenActivity extends AppCompatActivity {
     public class statusinfo{
         float progress = 0;
         boolean islightmode = true;
+        String currentFileNameDy = "";
+        ConcurrentHashMap<String, Float> fileprogresslist = new ConcurrentHashMap<>();
     }
     private FrameLayout parentlayout  = null;
     private FrameLayout baselayout  = null;
@@ -165,6 +170,15 @@ public class FullscreenActivity extends AppCompatActivity {
                     String jstr = new String(buffer);
                     if(isJson(jstr)) {
                         statusinfo_ = gsonin.fromJson(jstr, statusinfo.class);
+                        statusinfo_.currentFileNameDy = getIntent().getStringExtra("fileName").isEmpty() ? statusinfo_.currentFileNameDy : getIntent().getStringExtra("fileName");
+                        if(statusinfo_.currentFileNameDy != null && statusinfo_.fileprogresslist != null && statusinfo_.fileprogresslist.containsKey(statusinfo_.currentFileNameDy) ){
+                            Float pf =  statusinfo_.fileprogresslist.get(statusinfo_.currentFileNameDy);
+                            if(pf != null){
+                                statusinfo_.progress = pf;
+                            }else{
+                                statusinfo_.progress = 0.0f;
+                            }
+                        }
                         progressbar.setProgress((int) (statusinfo_.progress * ProcessBarMax));
                         Log.e("aizhiqiang","read json success" + String.valueOf(statusinfo_.progress) );
                     }else{
@@ -280,6 +294,9 @@ public class FullscreenActivity extends AppCompatActivity {
                 //write current progress to disk
                 if(progressfile.exists() && statusinfo_ != null){
                     try {
+                        if(statusinfo_.currentFileNameDy != null && !statusinfo_.currentFileNameDy.isEmpty()){
+                            statusinfo_.fileprogresslist.put(statusinfo_.currentFileNameDy, statusinfo_.progress);
+                        }
                         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(progressfile,false), "UTF-8"));
                         Gson gson = new Gson();
                         String content = gson.toJson(statusinfo_);
