@@ -33,6 +33,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Timer;
@@ -46,10 +47,10 @@ import com.example.utils.Permission;
 
 public class FullscreenActivity extends AppCompatActivity {
     public class statusinfo{
+        ConcurrentHashMap<String, Float> fileprogresslist = new ConcurrentHashMap<>();
+        String currentFileNameDy = "";
         float progress = 0;
         boolean islightmode = true;
-        String currentFileNameDy = "";
-        ConcurrentHashMap<String, Float> fileprogresslist = new ConcurrentHashMap<>();
     }
     private FrameLayout parentlayout  = null;
     private FrameLayout baselayout  = null;
@@ -65,6 +66,7 @@ public class FullscreenActivity extends AppCompatActivity {
     Context mContext;
     Bitmap fakeFrame;
     TextViewAdvance viewtest;
+    Timer mtimer;
     boolean isfirstload = true;
     static final int ProcessBarMax = 2000;
 
@@ -140,6 +142,15 @@ public class FullscreenActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         Permission.checkPermission(this);
+    }
+    @Override
+    public void onBackPressed() {
+         super.onBackPressed();//注释掉这行,back键不退出activity
+        //release
+         if(mtimer != null){
+             mtimer.cancel();
+             mtimer = null;
+         }
     }
 
     @Override
@@ -296,7 +307,8 @@ public class FullscreenActivity extends AppCompatActivity {
         });
         progressbar.bringToFront();
 
-        new Timer().schedule(new TimerTask() {
+        mtimer = new Timer();
+        mtimer.schedule(new TimerTask() {
             @Override
             public void run() {
                 //write current progress to disk
@@ -305,7 +317,7 @@ public class FullscreenActivity extends AppCompatActivity {
                         if(statusinfo_.currentFileNameDy != null && !statusinfo_.currentFileNameDy.isEmpty()){
                             statusinfo_.fileprogresslist.put(statusinfo_.currentFileNameDy, statusinfo_.progress);
                         }
-                        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(progressfile,false), "UTF-8"));
+                        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(progressfile,false), StandardCharsets.UTF_8));
                         Gson gson = new Gson();
                         String content = gson.toJson(statusinfo_);
                         writer.write(content);
