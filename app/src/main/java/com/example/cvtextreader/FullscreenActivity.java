@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.Log;
 
 import android.util.Pair;
@@ -34,6 +35,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Timer;
@@ -67,6 +69,7 @@ public class FullscreenActivity extends AppCompatActivity {
     Bitmap fakeFrame;
     TextViewAdvance viewtest;
     Timer mtimer;
+    int pageindex = 0;
     boolean isfirstload = true;
     static final int ProcessBarMax = 2000;
 
@@ -346,18 +349,22 @@ public class FullscreenActivity extends AppCompatActivity {
                                 }else{
                                     nextpageprocess = titlelist.get(i+1).second;
                                 }
-                                int finalI = i;
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        pageshow.setText(titlelist.get(finalI).first);
-                                    }
-                                });
+                                pageindex = i;
                                 Log.e("aizhiqiang", "current page is" + titlelist.get(i).first);
                                 break;
                         }
                     }
                 }
+                String pagetext = "";
+                if(titlelist != null && titlelist.size() > 0 && linesum > 0 && statusinfo_!= null){
+                    pagetext += titlelist.get(pageindex).first;
+                }
+                String progresstext = "";
+                if(statusinfo_ != null) {
+                    progresstext =  new DecimalFormat( ".00" ).format(statusinfo_.progress * 100) + "%";
+                }
+                String finalPagetext = pagetext + " " + "<font color='#999999'>" + progresstext + "</font>";
+                runOnUiThread(() -> pageshow.setText(Html.fromHtml(finalPagetext)));
             }
         }, 100, 100);
 
