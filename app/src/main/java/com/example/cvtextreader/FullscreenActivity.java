@@ -3,8 +3,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.text.Html;
@@ -26,6 +28,8 @@ import com.example.utils.EyeDetectorbase;
 import com.example.utils.SeekbarAdvance;
 import com.example.utils.TextViewCreater;
 import com.example.utils.TextViewAdvance;
+import com.example.utils.ViewFlingerAdvance;
+import com.example.utils.ImageViewAdvance;
 import com.google.gson.Gson;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -75,17 +79,31 @@ public class FullscreenActivity extends AppCompatActivity {
 
     ImageView fakeview;
     String fakepicpath;
+
+    ViewFlingerAdvance flinger;
+
+    ImageViewAdvance imageViewBack;
     private void saveFakeFrame(){
         if(viewtest != null) {
+            imageViewBack.setDrawingCacheEnabled(true);
+            imageViewBack.buildDrawingCache();
+            Bitmap backBitmap = imageViewBack.getDrawingCache();
             viewtest.setDrawingCacheEnabled(true);
             viewtest.buildDrawingCache();
-            fakeFrame = viewtest.getDrawingCache();
+            Bitmap frontBitmap = viewtest.getDrawingCache();
+
+            Canvas canvas = new Canvas(backBitmap);
+            Rect baseRect  = new Rect(0, 0, backBitmap.getWidth(), backBitmap.getHeight());
+            Rect frontRect = new Rect(0, 0, frontBitmap.getWidth(), frontBitmap.getHeight());
+            canvas.drawBitmap(frontBitmap, frontRect, baseRect, null);
+            fakeFrame = backBitmap;
             try {
                 fakeFrame.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(fakepicpath));
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
             viewtest.destroyDrawingCache();
+            imageViewBack.destroyDrawingCache();
         }
     }
     private void showFakeFrame(){
@@ -104,13 +122,17 @@ public class FullscreenActivity extends AppCompatActivity {
     private void setlightmode(){
         if(viewtest!=null && pageshow!=null) {
             if (statusinfo_.islightmode) {
-                viewtest.setThemeindex(0);
+                viewtest.setTextColor(Color.parseColor("#000000"));
                 pageshow.setBackgroundColor(Color.parseColor("#cce1ccaa"));
                 pageshow.setTextColor(Color.parseColor("#000000"));
+                imageViewBack.setOriBitmap(BitmapFactory.decodeResource(getResources(),R.drawable.backlight));
+                imageViewBack.loadbitmap();
             } else {
-                viewtest.setThemeindex(1);
+                viewtest.setTextColor(Color.parseColor("#555555"));
                 pageshow.setBackgroundColor(Color.parseColor("#cc111111"));
                 pageshow.setTextColor(Color.parseColor("#555555"));
+                imageViewBack.setOriBitmap(BitmapFactory.decodeResource(getResources(),R.drawable.backdark));
+                imageViewBack.loadbitmap();
             }
         }
     }
@@ -217,15 +239,21 @@ public class FullscreenActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        // add imageview back
+        imageViewBack = new ImageViewAdvance(this);
+        baselayout.addView(imageViewBack);
+        imageViewBack.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                imageViewBack.loadbitmap();
+            }
+        });
+
         //build TextView
         TextViewCreater.TextViewPara para = new TextViewCreater.TextViewPara();
         para.txtpath = FilePath;
         para.basecontext = this;
         para.fontsize = 16;
-        para.themelist = new ArrayList<TextViewAdvance.themeitem>() {{
-            add(new TextViewAdvance.themeitem(R.drawable.backlight, Color.parseColor("#000000"), -1));
-            add(new TextViewAdvance.themeitem(R.drawable.backdark, Color.parseColor("#555555"), -1));
-        }};
         para.listener = new TextViewAdvance.IProcessListener() {
             @Override
             public void onProcess(float progress) {
@@ -245,12 +273,31 @@ public class FullscreenActivity extends AppCompatActivity {
             public void onGetList(ArrayList<Pair<String, Float>> list, long linesum_) {
                 titlelist = list;
                 linesum = linesum_;
-                //fakeview.setVisibility(View.GONE);
             }
         };
         viewtest = TextViewCreater.createTextView(para);
-        viewtest.setThemeindex(0);
         baselayout.addView(viewtest);
+        viewtest.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                if(statusinfo_ != null && isfirstload) {
+                    Log.e("aizhiqiang", "first set progress" + String.valueOf(statusinfo_.progress));
+                    viewtest.seektopos(statusinfo_.progress);
+                    isfirstload = false;
+                }
+            }
+        });
+
+        flinger = new ViewFlingerAdvance(this);
+        flinger.addScrollListener(new ViewFlingerAdvance.IScrollListener() {
+            @Override
+            public void scrollByHeight(int dy) {
+                viewtest.constrainScrollBy(dy);
+                imageViewBack.constrainScrollBy(dy);
+            }
+        });
+        baselayout.addView(flinger);
+
 
         //set progressbar
         progressbar.setMax(ProcessBarMax);
@@ -270,13 +317,13 @@ public class FullscreenActivity extends AppCompatActivity {
                             @Override
                             public void onEvent(EyeDetectorbase.eyeEvent event) {
                                 if (event == EyeDetectorbase.eyeEvent.EyeAllOpen) {
-                                    viewtest.enableEyeAutoMoving(TextViewAdvance.AutoMovingMode.None);
+                                    flinger.enableEyeAutoMoving(ViewFlingerAdvance.AutoMovingMode.None);
                                     Log.e("eyestatus", "eyestatus changed --> EyeOpen");
                                 } else if (event == EyeDetectorbase.eyeEvent.LeftEyeClose) {
-                                    viewtest.enableEyeAutoMoving(TextViewAdvance.AutoMovingMode.Down);
+                                    flinger.enableEyeAutoMoving(ViewFlingerAdvance.AutoMovingMode.Down);
                                     Log.e("eyestatus", "eyestatus changed --> LeftEyeClose");
                                 } else if (event == EyeDetectorbase.eyeEvent.RightEyeClose) {
-                                    viewtest.enableEyeAutoMoving(TextViewAdvance.AutoMovingMode.UP);
+                                    flinger.enableEyeAutoMoving(ViewFlingerAdvance.AutoMovingMode.UP);
                                     Log.e("eyestatus", "eyestatus changed --> RightEyeClose");
                                 }
                             }
@@ -288,12 +335,10 @@ public class FullscreenActivity extends AppCompatActivity {
                         detector.destroy();
                         detector = null;
                     }
-                    viewtest.enableEyeAutoMoving(TextViewAdvance.AutoMovingMode.None);
+                    flinger.enableEyeAutoMoving(ViewFlingerAdvance.AutoMovingMode.None);
                 }
             }
         });
-
-
         progressbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -368,18 +413,7 @@ public class FullscreenActivity extends AppCompatActivity {
             }
         }, 100, 100);
 
-        //set textview to last finished position
-        viewtest.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                if(statusinfo_ != null && isfirstload) {
-                    Log.e("aizhiqiang", "first set progress" + String.valueOf(statusinfo_.progress));
-                    viewtest.seektopos(statusinfo_.progress);
-                    isfirstload = false;
-                }
-            }
-        });
-
+        //pageshow
         pageshow = findViewById(R.id.pageshow);
         pageshow.setTextSize(13);
         pageshow.setGravity(Gravity.CENTER);

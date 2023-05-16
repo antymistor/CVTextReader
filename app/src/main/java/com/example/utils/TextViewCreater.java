@@ -14,14 +14,12 @@ import java.util.ArrayList;
 public class TextViewCreater {
     public static class TextViewPara{
         public int fontsize        =  15;
-        public ArrayList<TextViewAdvance.themeitem> themelist = new ArrayList<>();
         public Context basecontext;
         public String txtpath      =  Environment.getExternalStorageDirectory().getPath() +"/test.txt";
         public TextViewAdvance.IProcessListener listener = null;
     }
     public static TextViewAdvance createTextView(TextViewPara para){
         TextViewAdvance view = new TextViewAdvance(para.basecontext);
-        view.setBacklist(para.themelist);
         view.setTextSize(para.fontsize);
         view.setListener(para.listener);
         view.pushTxt(para.txtpath);
