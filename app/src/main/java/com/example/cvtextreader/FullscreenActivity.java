@@ -122,7 +122,7 @@ public class FullscreenActivity extends AppCompatActivity {
     private void setlightmode(){
         if(viewtest!=null && pageshow!=null) {
             if (statusinfo_.islightmode) {
-                viewtest.setTextColor(Color.parseColor("#000000"));
+                viewtest.setTextColor(Color.parseColor("#444444"));
                 pageshow.setBackgroundColor(Color.parseColor("#cce1ccaa"));
                 pageshow.setTextColor(Color.parseColor("#000000"));
                 imageViewBack.setOriBitmap(BitmapFactory.decodeResource(getResources(),R.drawable.backlight));

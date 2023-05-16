@@ -23,14 +23,15 @@ public class ImageViewAdvance extends AppCompatImageView {
     private Bitmap mDestBitmap;
     private int mOriWidth = 0;
     private int mOriHeight = 0;
-    private int mSingleImageHeight = 0;
     private int mNowCursor = 0;
     private int mDisplayHeight = 0;
     private int mDisplayWidth = 0;
     private Boolean mNeedUpdate = false;
+    private final Matrix mMatrix;
     public ImageViewAdvance(Context context) {
         super(context);
         mContext = context;
+        mMatrix = new Matrix();
     }
     public void setOriBitmap(Bitmap bitmap){
         mOriBitmap = bitmap;
@@ -63,15 +64,16 @@ public class ImageViewAdvance extends AppCompatImageView {
         }
         mOriBitmap = result;
         mNeedUpdate = false;
-        draw();
+
+        setScaleType(ScaleType.MATRIX);
+        mMatrix.postScale(1.0f, 1.0f);
+        setImageMatrix(mMatrix);
+        setImageBitmap(mOriBitmap);
     }
 
     public void draw(){
-        if(mOriBitmap == null){
-            return;
-        }
-        mDestBitmap = Bitmap.createBitmap(mOriBitmap, 0, mNowCursor, mDisplayWidth, mDisplayHeight);
-        setImageBitmap(mDestBitmap);
+        mMatrix.setTranslate(0.0f, -1.0f * mNowCursor);
+        setImageMatrix(mMatrix);
     }
     public void constrainScrollBy(int dy){
         if(mOriHeight <=0){

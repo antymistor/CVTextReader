@@ -1,6 +1,7 @@
 package com.example.utils;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.Environment;
 
 import java.util.ArrayList;
