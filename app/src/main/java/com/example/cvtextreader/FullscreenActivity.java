@@ -82,6 +82,7 @@ public class FullscreenActivity extends AppCompatActivity {
     boolean isEyeCtrON = false;
     ViewFlingerAdvance flinger;
     ImageViewAdvance imageViewBack;
+    Float maxprogress = 1.0f;
     private void saveFakeFrame(){
         if(viewtest != null) {
             imageViewBack.setDrawingCacheEnabled(true);
@@ -209,6 +210,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
                 @Override
                 public void onToEnd() {
+                    maxprogress = statusinfo_.progress;
                     Log.e("cvtextreader", "Has Move to end");
                 }
 
@@ -238,6 +240,10 @@ public class FullscreenActivity extends AppCompatActivity {
             flinger.addScrollListener(new ViewFlingerAdvance.IScrollListener() {
                 @Override
                 public void scrollByHeight(int dy) {
+                    if( (dy < 0 && statusinfo_.progress <=0) ||
+                        (dy > 0 && statusinfo_.progress >=maxprogress) ){
+                        return;
+                    }
                     viewtest.constrainScrollBy(dy);
                     imageViewBack.constrainScrollBy(dy);
                 }
@@ -413,10 +419,6 @@ public class FullscreenActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         Permission.checkPermission(this);
-        GetAndSetStatusFromDisk();
-        LoadViews();
-        LoadTimer();
-        setlightmode();
     }
 
     @Override
@@ -449,6 +451,12 @@ public class FullscreenActivity extends AppCompatActivity {
         baselayout = findViewById(R.id.baselayout);
         progressbar = findViewById(R.id.processbar);
         FilePath = getIntent().getStringExtra("filePath");
+
+        //load
+        GetAndSetStatusFromDisk();
+        LoadViews();
+        LoadTimer();
+        setlightmode();
     }
 
 
