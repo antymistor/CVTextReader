@@ -135,9 +135,6 @@ public class TextViewAdvance extends AppCompatTextView {
         if(mHeight <= 0){
             mHeight = getLineHeight() * getLineCount();
         }
-        if(mListener != null) {
-            mListener.onProcess(1.0f * scrollY / getLineCount() / getLineHeight());
-        }
         //下边界
         if (mHeight - scrollY - dy < height) {
             dy = mHeight - scrollY - height;
@@ -150,5 +147,8 @@ public class TextViewAdvance extends AppCompatTextView {
             dy = -scrollY;
         }
         scrollBy(0, dy);
+        if(mListener != null) {
+            mListener.onProcess(1.0f * getScrollY() / getLineCount() / getLineHeight());
+        }
     }
 }

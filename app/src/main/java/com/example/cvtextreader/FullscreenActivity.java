@@ -76,12 +76,11 @@ public class FullscreenActivity extends AppCompatActivity {
     int pageindex = 0;
     boolean isfirstload = true;
     static final int ProcessBarMax = 2000;
-
     ImageView fakeview;
     String fakepicpath;
-
+    TextView pageshow;
+    boolean isEyeCtrON = false;
     ViewFlingerAdvance flinger;
-
     ImageViewAdvance imageViewBack;
     private void saveFakeFrame(){
         if(viewtest != null) {
@@ -125,81 +124,19 @@ public class FullscreenActivity extends AppCompatActivity {
                 viewtest.setTextColor(Color.parseColor("#444444"));
                 pageshow.setBackgroundColor(Color.parseColor("#cce1ccaa"));
                 pageshow.setTextColor(Color.parseColor("#000000"));
-                imageViewBack.setOriBitmap(BitmapFactory.decodeResource(getResources(),R.drawable.backlight));
+                imageViewBack.setOriBitmapResid(R.drawable.backlight);
                 imageViewBack.loadbitmap();
             } else {
                 viewtest.setTextColor(Color.parseColor("#555555"));
                 pageshow.setBackgroundColor(Color.parseColor("#cc111111"));
                 pageshow.setTextColor(Color.parseColor("#555555"));
-                imageViewBack.setOriBitmap(BitmapFactory.decodeResource(getResources(),R.drawable.backdark));
+                imageViewBack.setOriBitmapResid(R.drawable.backdark);
                 imageViewBack.loadbitmap();
             }
         }
     }
 
-    enum FakeFrameSaveStatus{
-        has_saved,
-        need_save_but_do_not_save,
-        need_save_now
-    }
-    FakeFrameSaveStatus fakeFrameSaveStatus = FakeFrameSaveStatus.has_saved;
-
-    private static boolean isJson(String content) {
-        JsonElement jsonElement;
-        try {
-            jsonElement = new JsonParser().parse(content);
-        } catch (Exception e) {
-            return false;
-        }
-        if (jsonElement == null) {
-            return false;
-        }
-        if (!jsonElement.isJsonObject()) {
-            return false;
-        }
-        return true;
-    }
-
-    TextView pageshow;
-    boolean isEyeCtrON = false;
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        Permission.checkPermission(this);
-    }
-    @Override
-    public void onBackPressed() {
-         super.onBackPressed();//注释掉这行,back键不退出activity
-        //release
-         if(mtimer != null){
-             mtimer.cancel();
-             mtimer = null;
-         }
-    }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        isfirstload = true;
-        mContext = this;
-        fakepicpath = getFilesDir().getPath() + "/frame.png";
-
-        //pretty layout
-        Objects.requireNonNull(getSupportActionBar()).hide();
-        WindowManager.LayoutParams attributes = getWindow().getAttributes();
-        attributes.flags |= WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION;
-        getWindow().setAttributes(attributes);
-        getWindow().setStatusBarColor(Color.TRANSPARENT);
-        setContentView(R.layout.activity_fullscreen);
-        showFakeFrame();
-
-        //get para
-        baselayout = findViewById(R.id.baselayout);
-        progressbar = findViewById(R.id.processbar);
-        FilePath = getIntent().getStringExtra("filePath");
-
-        //get and set status from disk
+    private void GetAndSetStatusFromDisk(){
         try {
             progressfile = new File(getFilesDir().getPath() + "/progress.json");
             if (!progressfile.exists() && !progressfile.createNewFile()) {
@@ -238,123 +175,158 @@ public class FullscreenActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
 
-        // add imageview back
-        imageViewBack = new ImageViewAdvance(this);
-        baselayout.addView(imageViewBack);
-        imageViewBack.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                imageViewBack.loadbitmap();
-            }
-        });
-
-        //build TextView
-        TextViewCreater.TextViewPara para = new TextViewCreater.TextViewPara();
-        para.txtpath = FilePath;
-        para.basecontext = this;
-        para.fontsize = 16;
-        para.listener = new TextViewAdvance.IProcessListener() {
-            @Override
-            public void onProcess(float progress) {
-                if (statusinfo_ != null) {
-                    statusinfo_.progress = progress;
-                    progressbar.setProgress((int) (statusinfo_.progress * ProcessBarMax));
-                    fakeFrameSaveStatus = FakeFrameSaveStatus.need_save_but_do_not_save;
-                    fakeview.setVisibility(View.GONE);
+    private void LoadViews(){
+        // add imageview
+        {
+            imageViewBack = new ImageViewAdvance(this);
+            baselayout.addView(imageViewBack);
+            imageViewBack.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    imageViewBack.loadbitmap();
                 }
-            }
-            @Override
-            public void onToEnd() {
-                Log.e("cvtextreader", "Has Move to end");
-            }
+            });
+        }
 
-            @Override
-            public void onGetList(ArrayList<Pair<String, Float>> list, long linesum_) {
-                titlelist = list;
-                linesum = linesum_;
-            }
-        };
-        viewtest = TextViewCreater.createTextView(para);
-        baselayout.addView(viewtest);
-        viewtest.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                if(statusinfo_ != null && isfirstload) {
-                    Log.e("aizhiqiang", "first set progress" + String.valueOf(statusinfo_.progress));
-                    viewtest.seektopos(statusinfo_.progress);
-                    isfirstload = false;
+        //add TextView
+        {
+            TextViewCreater.TextViewPara para = new TextViewCreater.TextViewPara();
+            para.txtpath = FilePath;
+            para.basecontext = this;
+            para.fontsize = 16;
+            para.listener = new TextViewAdvance.IProcessListener() {
+                @Override
+                public void onProcess(float progress) {
+                    if (statusinfo_ != null) {
+                        statusinfo_.progress = progress;
+                        progressbar.setProgress((int) (statusinfo_.progress * ProcessBarMax));
+                        fakeFrameSaveStatus = FakeFrameSaveStatus.need_save_but_do_not_save;
+                        fakeview.setVisibility(View.GONE);
+                    }
                 }
-            }
-        });
 
-        flinger = new ViewFlingerAdvance(this);
-        flinger.addScrollListener(new ViewFlingerAdvance.IScrollListener() {
-            @Override
-            public void scrollByHeight(int dy) {
-                viewtest.constrainScrollBy(dy);
-                imageViewBack.constrainScrollBy(dy);
-            }
-        });
-        baselayout.addView(flinger);
+                @Override
+                public void onToEnd() {
+                    Log.e("cvtextreader", "Has Move to end");
+                }
+
+                @Override
+                public void onGetList(ArrayList<Pair<String, Float>> list, long linesum_) {
+                    titlelist = list;
+                    linesum = linesum_;
+                }
+            };
+            viewtest = TextViewCreater.createTextView(para);
+            baselayout.addView(viewtest);
+            viewtest.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    if (statusinfo_ != null && isfirstload) {
+                        Log.e("aizhiqiang", "first set progress" + String.valueOf(statusinfo_.progress));
+                        viewtest.seektopos(statusinfo_.progress);
+                        isfirstload = false;
+                    }
+                }
+            });
+        }
+
+        //add flinger
+        {
+            flinger = new ViewFlingerAdvance(this);
+            flinger.addScrollListener(new ViewFlingerAdvance.IScrollListener() {
+                @Override
+                public void scrollByHeight(int dy) {
+                    viewtest.constrainScrollBy(dy);
+                    imageViewBack.constrainScrollBy(dy);
+                }
+            });
+            baselayout.addView(flinger);
+        }
 
 
-        //set progressbar
-        progressbar.setMax(ProcessBarMax);
-        progressbar.getThumb().setColorFilter(Color.parseColor("#ff00ff00"), PorterDuff.Mode.SRC_IN);
-        progressbar.setOnClickThumbListener(new SeekbarAdvance.OnClickThumbListener() {
-            @Override
-            public void onClickThumb() {
-                isEyeCtrON = !isEyeCtrON;
-                if(isEyeCtrON){
-                    progressbar.getThumb().setColorFilter(Color.parseColor("#ffff0000"), PorterDuff.Mode.SRC_IN);
-                    if(detector == null){
-                        EyeDetector.EyeDetectorStatus intitpara = new EyeDetector.EyeDetectorStatus();
-                        intitpara.inputframesize = new Size(720, 1280);
-                        intitpara.maxfacecnt = 1;
-                        detector = new EyeDetector2(intitpara);
-                        detector.setListener(new EyeDetectorbase.IEyeStatusListener() {
-                            @Override
-                            public void onEvent(EyeDetectorbase.eyeEvent event) {
-                                if (event == EyeDetectorbase.eyeEvent.EyeAllOpen) {
-                                    flinger.enableEyeAutoMoving(ViewFlingerAdvance.AutoMovingMode.None);
-                                    Log.e("eyestatus", "eyestatus changed --> EyeOpen");
-                                } else if (event == EyeDetectorbase.eyeEvent.LeftEyeClose) {
-                                    flinger.enableEyeAutoMoving(ViewFlingerAdvance.AutoMovingMode.Down);
-                                    Log.e("eyestatus", "eyestatus changed --> LeftEyeClose");
-                                } else if (event == EyeDetectorbase.eyeEvent.RightEyeClose) {
-                                    flinger.enableEyeAutoMoving(ViewFlingerAdvance.AutoMovingMode.UP);
-                                    Log.e("eyestatus", "eyestatus changed --> RightEyeClose");
+        //add progressbar
+        {
+            progressbar.setMax(ProcessBarMax);
+            progressbar.getThumb().setColorFilter(Color.parseColor("#ff00ff00"), PorterDuff.Mode.SRC_IN);
+            progressbar.setOnClickThumbListener(new SeekbarAdvance.OnClickThumbListener() {
+                @Override
+                public void onClickThumb() {
+                    isEyeCtrON = !isEyeCtrON;
+                    if (isEyeCtrON) {
+                        progressbar.getThumb().setColorFilter(Color.parseColor("#ffff0000"), PorterDuff.Mode.SRC_IN);
+                        if (detector == null) {
+                            EyeDetector.EyeDetectorStatus intitpara = new EyeDetector.EyeDetectorStatus();
+                            intitpara.inputframesize = new Size(720, 1280);
+                            intitpara.maxfacecnt = 1;
+                            detector = new EyeDetector2(intitpara);
+                            detector.setListener(new EyeDetectorbase.IEyeStatusListener() {
+                                @Override
+                                public void onEvent(EyeDetectorbase.eyeEvent event) {
+                                    if (event == EyeDetectorbase.eyeEvent.EyeAllOpen) {
+                                        flinger.enableEyeAutoMoving(ViewFlingerAdvance.AutoMovingMode.None);
+                                        Log.e("eyestatus", "eyestatus changed --> EyeOpen");
+                                    } else if (event == EyeDetectorbase.eyeEvent.LeftEyeClose) {
+                                        flinger.enableEyeAutoMoving(ViewFlingerAdvance.AutoMovingMode.Down);
+                                        Log.e("eyestatus", "eyestatus changed --> LeftEyeClose");
+                                    } else if (event == EyeDetectorbase.eyeEvent.RightEyeClose) {
+                                        flinger.enableEyeAutoMoving(ViewFlingerAdvance.AutoMovingMode.UP);
+                                        Log.e("eyestatus", "eyestatus changed --> RightEyeClose");
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        }
+                    } else {
+                        progressbar.getThumb().setColorFilter(Color.parseColor("#ff00ff00"), PorterDuff.Mode.SRC_IN);
+                        if (detector != null) {
+                            detector.destroy();
+                            detector = null;
+                        }
+                        flinger.enableEyeAutoMoving(ViewFlingerAdvance.AutoMovingMode.None);
                     }
-                }else{
-                    progressbar.getThumb().setColorFilter(Color.parseColor("#ff00ff00"), PorterDuff.Mode.SRC_IN);
-                    if(detector != null){
-                        detector.destroy();
-                        detector = null;
+                }
+            });
+            progressbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    if (fromUser) {
+                        statusinfo_.progress = 1.0f * progress / ProcessBarMax;
+                        viewtest.seektopos(statusinfo_.progress);
+                        fakeFrameSaveStatus = FakeFrameSaveStatus.need_save_but_do_not_save;
                     }
-                    flinger.enableEyeAutoMoving(ViewFlingerAdvance.AutoMovingMode.None);
                 }
-            }
-        });
-        progressbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser) {
-                    statusinfo_.progress = 1.0f * progress / ProcessBarMax;
-                    viewtest.seektopos(statusinfo_.progress);
-                    fakeFrameSaveStatus = FakeFrameSaveStatus.need_save_but_do_not_save;
-                }
-            }
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
-        });
-        progressbar.bringToFront();
 
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                }
+            });
+            progressbar.bringToFront();
+        }
+
+        //addpageshow
+        {
+            pageshow = findViewById(R.id.pageshow);
+            pageshow.setTextSize(13);
+            pageshow.setGravity(Gravity.CENTER);
+            pageshow.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (statusinfo_ != null) {
+                        statusinfo_.islightmode = !statusinfo_.islightmode;
+                        setlightmode();
+                        viewtest.seektopos(statusinfo_.progress);
+                    }
+                }
+            });
+        }
+    }
+
+    private void LoadTimer(){
         mtimer = new Timer();
         mtimer.schedule(new TimerTask() {
             @Override
@@ -384,19 +356,19 @@ public class FullscreenActivity extends AppCompatActivity {
                 }
                 //show page title by toast
                 if(titlelist != null && titlelist.size() > 0 && linesum > 0 && statusinfo_!= null  &&
-                  (statusinfo_.progress * linesum >= nextpageprocess || statusinfo_.progress * linesum < lastpageprocess)){
+                        (statusinfo_.progress * linesum >= nextpageprocess || statusinfo_.progress * linesum < lastpageprocess)){
                     for(int i = 0 ; i != titlelist.size() ; ++i){
                         if( 1.0f * titlelist.get(i).second / linesum < statusinfo_.progress &&
-                          ((i + 1) == titlelist.size() || 1.0f * titlelist.get(i + 1).second / linesum > statusinfo_.progress)){
-                                lastpageprocess = titlelist.get(i).second;
-                                if((i + 1) == titlelist.size()){
-                                    nextpageprocess = (float)linesum;
-                                }else{
-                                    nextpageprocess = titlelist.get(i+1).second;
-                                }
-                                pageindex = i;
-                                Log.e("aizhiqiang", "current page is" + titlelist.get(i).first);
-                                break;
+                                ((i + 1) == titlelist.size() || 1.0f * titlelist.get(i + 1).second / linesum > statusinfo_.progress)){
+                            lastpageprocess = titlelist.get(i).second;
+                            if((i + 1) == titlelist.size()){
+                                nextpageprocess = (float)linesum;
+                            }else{
+                                nextpageprocess = titlelist.get(i+1).second;
+                            }
+                            pageindex = i;
+                            Log.e("aizhiqiang", "current page is" + titlelist.get(i).first);
+                            break;
                         }
                     }
                 }
@@ -412,22 +384,71 @@ public class FullscreenActivity extends AppCompatActivity {
                 runOnUiThread(() -> pageshow.setText(Html.fromHtml(finalPagetext)));
             }
         }, 100, 100);
+    }
 
-        //pageshow
-        pageshow = findViewById(R.id.pageshow);
-        pageshow.setTextSize(13);
-        pageshow.setGravity(Gravity.CENTER);
-        pageshow.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(statusinfo_ != null) {
-                    statusinfo_.islightmode = !statusinfo_.islightmode;
-                    setlightmode();
-                    viewtest.seektopos(statusinfo_.progress);
-                }
-            }
-        });
+    enum FakeFrameSaveStatus{
+        has_saved,
+        need_save_but_do_not_save,
+        need_save_now
+    }
+    FakeFrameSaveStatus fakeFrameSaveStatus = FakeFrameSaveStatus.has_saved;
+
+    private static boolean isJson(String content) {
+        JsonElement jsonElement;
+        try {
+            jsonElement = new JsonParser().parse(content);
+        } catch (Exception e) {
+            return false;
+        }
+        if (jsonElement == null) {
+            return false;
+        }
+        if (!jsonElement.isJsonObject()) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Permission.checkPermission(this);
+        GetAndSetStatusFromDisk();
+        LoadViews();
+        LoadTimer();
         setlightmode();
+    }
+
+    @Override
+    public void onBackPressed() {
+         super.onBackPressed();//注释掉这行,back键不退出activity
+        //release
+         if(mtimer != null){
+             mtimer.cancel();
+             mtimer = null;
+         }
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        isfirstload = true;
+        mContext = this;
+        fakepicpath = getFilesDir().getPath() + "/frame.png";
+
+        //pretty layout
+        Objects.requireNonNull(getSupportActionBar()).hide();
+        WindowManager.LayoutParams attributes = getWindow().getAttributes();
+        attributes.flags |= WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION;
+        getWindow().setAttributes(attributes);
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        setContentView(R.layout.activity_fullscreen);
+        showFakeFrame();
+
+        //get para
+        baselayout = findViewById(R.id.baselayout);
+        progressbar = findViewById(R.id.processbar);
+        FilePath = getIntent().getStringExtra("filePath");
     }
 
 

@@ -11,6 +11,10 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.FileUtils;
+import android.text.Html;
+import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
@@ -20,6 +24,7 @@ import android.widget.ImageView;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatImageView;
+import androidx.core.view.GestureDetectorCompat;
 import androidx.documentfile.provider.DocumentFile;
 
 import java.io.FileNotFoundException;
@@ -45,35 +50,47 @@ public class MainActivity extends AppCompatActivity {
     private static int pageindex = 0;
     private int backviewWidth = 0;
     private int backviewHeight = 0;
+    private GestureDetectorCompat mDetector;
+
+    class LoadBitmapThread extends Thread{//继承Thread类
+        @Override
+      public void run(){
+            try {
+                Thread.sleep(1000);
+                if(backviewWidth >0 && backviewHeight >0){
+                    loadBitmap(-1);
+                }else{
+                    parentlayout.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                        @Override
+                        public void onGlobalLayout() {
+                            if(backviewWidth <=0 || backviewHeight <=0){
+                                backviewWidth = background.getWidth();
+                                backviewHeight = background.getHeight();
+                                loadBitmap(0);
+                            }
+                        }
+                    });
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public void goNextpage(){
         Intent intent = new Intent(this, FullscreenActivity.class);
         intent.putExtra("filePath", getFilesDir().getPath() +"/cache.txt");
         intent.putExtra("fileName", filename);
         startActivity(intent);
-        if(backviewWidth >0 && backviewHeight >0){
-            loadBitmap(-1);
-        }else{
-            parentlayout.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                @Override
-                public void onGlobalLayout() {
-                    if(backviewWidth <=0 || backviewHeight <=0){
-                        backviewWidth = background.getWidth();
-                        backviewHeight = background.getHeight();
-                        loadBitmap(0);
-                    }
-                }
-            });
-        }
+        Log.i("GONext Page","file name" + filename);
+        new LoadBitmapThread().start();
     }
 
-    static List<Integer> backlistid = Arrays.asList(R.drawable.g0,
-                                                    R.drawable.g1,
-                                                    R.drawable.g2,
-                                                    R.drawable.g3,
-                                                    R.drawable.g4,
-                                                    R.drawable.g5,
-                                                    R.drawable.g6,
-                                                    R.drawable.g7);
+    static List<Integer> backlistid = Arrays.asList(R.drawable.g0, R.drawable.g1, R.drawable.g2, R.drawable.g3, R.drawable.g4,
+                                                    R.drawable.g5, R.drawable.g6, R.drawable.g7, R.drawable.g8, R.drawable.g9,
+                                                    R.drawable.g10,R.drawable.g11,R.drawable.g12,R.drawable.g13,R.drawable.g14,
+                                                    R.drawable.g15,R.drawable.g16,R.drawable.g17,R.drawable.g18,R.drawable.g19,
+                                                    R.drawable.g20,R.drawable.g21,R.drawable.g22,R.drawable.g23,R.drawable.g24);
     private void loadBitmap(int index){
         if(backviewWidth <=0 || backviewHeight <=0){
             return;
@@ -94,9 +111,30 @@ public class MainActivity extends AppCompatActivity {
         mat.postScale(scale, scale);
         mapori = Bitmap.createBitmap(mapori, (int)(mapori.getWidth() * (1- scaleRatio) / 2), 0,
                                              (int)(mapori.getWidth() * scaleRatio), mapori.getHeight(),mat, true);
+        Bitmap finalMapori = mapori;
+        runOnUiThread(() -> background.setBackground( new BitmapDrawable(finalMapori)));
 
-        background.setBackground( new BitmapDrawable(mapori));
     }
+    class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
+        private static final String DEBUG_TAG = "Gestures";
+
+        @Override
+        public boolean onFling(MotionEvent event1, MotionEvent event2,
+                               float velocityX, float velocityY) {
+            if(Math.abs(event2.getY() - event1.getY()) < 100 &&
+                    (event1.getX() - event2.getX()) > 100){
+                goNextpage();
+            }
+            return true;
+        }
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event){
+        this.mDetector.onTouchEvent(event);
+        return super.onTouchEvent(event);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -109,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
         parentlayout = findViewById(R.id.parentlayoutmain);
         background = new AppCompatImageView(this);
         parentlayout.addView(background);
-
+        mDetector = new GestureDetectorCompat(this, new MyGestureListener());
         findViewById(R.id.button).setBackgroundColor(Color.parseColor("#00000000"));
         goNextpage();
     }
