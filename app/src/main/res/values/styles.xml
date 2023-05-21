@@ -9,10 +9,10 @@
         <item name="android:buttonBarStyle">?android:attr/buttonBarStyle</item>
     </style>
 
-    <style name="AppTheme.Main" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="SplashTheme" parent="Theme.CVTextReader.Fullscreen">
         <item name="colorPrimary">@color/white</item>
         <item name="colorPrimaryDark">@color/white</item>
         <item name="colorAccent">@color/white</item>
-        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowBackground">@drawable/backlight</item>
     </style>
 </resources>

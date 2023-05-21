@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
                             if(backviewWidth <=0 || backviewHeight <=0){
                                 backviewWidth = background.getWidth();
                                 backviewHeight = background.getHeight();
-                                loadBitmap(0);
+                                loadBitmap(-1);
                             }
                         }
                     });
