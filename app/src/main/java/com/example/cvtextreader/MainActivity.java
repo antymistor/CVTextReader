@@ -1,5 +1,4 @@
 package com.example.cvtextreader;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -11,7 +10,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.FileUtils;
-import android.text.Html;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -19,19 +17,14 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
-
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.core.view.GestureDetectorCompat;
 import androidx.documentfile.provider.DocumentFile;
-
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -54,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
 
     class LoadBitmapThread extends Thread{//继承Thread类
         @Override
-      public void run(){
+        public void run(){
             try {
                 Thread.sleep(1000);
                 if(backviewWidth >0 && backviewHeight >0){
@@ -66,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
                             if(backviewWidth <=0 || backviewHeight <=0){
                                 backviewWidth = background.getWidth();
                                 backviewHeight = background.getHeight();
-                                loadBitmap(-1);
+                                loadBitmap(0);
                             }
                         }
                     });
@@ -90,7 +83,15 @@ public class MainActivity extends AppCompatActivity {
                                                     R.drawable.g5, R.drawable.g6, R.drawable.g7, R.drawable.g8, R.drawable.g9,
                                                     R.drawable.g10,R.drawable.g11,R.drawable.g12,R.drawable.g13,R.drawable.g14,
                                                     R.drawable.g15,R.drawable.g16,R.drawable.g17,R.drawable.g18,R.drawable.g19,
-                                                    R.drawable.g20,R.drawable.g21,R.drawable.g22,R.drawable.g23,R.drawable.g24);
+                                                    R.drawable.g20,R.drawable.g21,R.drawable.g22,R.drawable.g23,R.drawable.g24,
+                                                    R.drawable.g25, R.drawable.g26, R.drawable.g27, R.drawable.g28, R.drawable.g29,
+                                                    R.drawable.g30, R.drawable.g31, R.drawable.g32, R.drawable.g33, R.drawable.g34,
+                                                    R.drawable.g35,R.drawable.g36,R.drawable.g37,R.drawable.g38,R.drawable.g39,
+                                                    R.drawable.g40,R.drawable.g41,R.drawable.g42,R.drawable.g43,R.drawable.g44,
+                                                    R.drawable.g45,R.drawable.g46,R.drawable.g47,R.drawable.g48,R.drawable.g49,
+                                                    R.drawable.g50, R.drawable.g51, R.drawable.g52, R.drawable.g53, R.drawable.g54,
+                                                    R.drawable.g55, R.drawable.g56, R.drawable.g57, R.drawable.g58, R.drawable.g59,
+                                                    R.drawable.g60);
     private void loadBitmap(int index){
         if(backviewWidth <=0 || backviewHeight <=0){
             return;
@@ -113,11 +114,9 @@ public class MainActivity extends AppCompatActivity {
                                              (int)(mapori.getWidth() * scaleRatio), mapori.getHeight(),mat, true);
         Bitmap finalMapori = mapori;
         runOnUiThread(() -> background.setBackground( new BitmapDrawable(finalMapori)));
-
     }
-    class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
-        private static final String DEBUG_TAG = "Gestures";
 
+    class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
         @Override
         public boolean onFling(MotionEvent event1, MotionEvent event2,
                                float velocityX, float velocityY) {

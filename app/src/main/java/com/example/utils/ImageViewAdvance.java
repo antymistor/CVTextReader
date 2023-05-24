@@ -1,21 +1,12 @@
 package com.example.utils;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.util.DisplayMetrics;
-import android.view.Display;
-import android.view.ViewTreeObserver;
-import android.widget.ImageView;
-
 import androidx.appcompat.widget.AppCompatImageView;
-
-import com.example.cvtextreader.R;
 
 /**
  * Created by aizhiqiang on 2023/5/15
@@ -25,7 +16,6 @@ import com.example.cvtextreader.R;
 public class ImageViewAdvance extends AppCompatImageView {
     private Activity mContext;
     private Bitmap mOriBitmap;
-    private Bitmap mDestBitmap;
     private int mOriWidth = 0;
     private int mOriHeight = 0;
     private int mNowCursor = 0;

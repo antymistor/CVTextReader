@@ -58,12 +58,12 @@ public class FullscreenActivity extends AppCompatActivity {
         float progress = 0;
         boolean islightmode = true;
     }
-    private FrameLayout parentlayout  = null;
-    private FrameLayout baselayout  = null;
+    private FrameLayout parentlayout   = null;
+    private FrameLayout baselayout     = null;
     private SeekbarAdvance progressbar = null;
-    private statusinfo statusinfo_ = null;
-    private Float lastpageprocess = 0.0f;
-    private Float nextpageprocess = 0.0f;
+    private statusinfo statusinfo_     = null;
+    private Float lastpageprocess      = 0.0f;
+    private Float nextpageprocess      = 0.0f;
     File progressfile;
     EyeDetectorbase detector;
     String FilePath;
