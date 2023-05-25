@@ -91,12 +91,13 @@ public class MainActivity extends AppCompatActivity {
                                                     R.drawable.g45,R.drawable.g46,R.drawable.g47,R.drawable.g48,R.drawable.g49,
                                                     R.drawable.g50, R.drawable.g51, R.drawable.g52, R.drawable.g53, R.drawable.g54,
                                                     R.drawable.g55, R.drawable.g56, R.drawable.g57, R.drawable.g58, R.drawable.g59,
-                                                    R.drawable.g60);
+                                                    R.drawable.g60, R.drawable.g61, R.drawable.g62, R.drawable.g63, R.drawable.g64,
+                                                    R.drawable.g65, R.drawable.g66);
     private void loadBitmap(int index){
         if(backviewWidth <=0 || backviewHeight <=0){
             return;
         }
-        pageindex = index >=0 ? index : (new Random().nextInt(backlistid.size()));
+        pageindex = index >=0 ? index : (new Random(System.currentTimeMillis()).nextInt(backlistid.size()));
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeResource(getResources(), backlistid.get(pageindex), options);
