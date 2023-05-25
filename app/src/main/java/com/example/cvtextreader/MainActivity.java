@@ -1,15 +1,11 @@
 package com.example.cvtextreader;
-import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.FileUtils;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -17,14 +13,9 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.core.view.GestureDetectorCompat;
-import androidx.documentfile.provider.DocumentFile;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -152,34 +143,9 @@ public class MainActivity extends AppCompatActivity {
         goNextpage();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.Q)
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == Activity.RESULT_OK) {
-            Uri uri = data.getData();
-            try {
-                InputStream is = getContentResolver().openInputStream(uri);
-                FileOutputStream fos = openFileOutput("cache.txt", 0);
-                FileUtils.copy(is, fos);
-                fos.close();
-                is.close();
-                DocumentFile documentFile = DocumentFile.fromSingleUri(this, uri);
-                if(documentFile != null) {
-                    filename = documentFile.getName();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            goNextpage();
-        }
-    }
-
     public void startread(View view) {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("text/plain");//设置类型
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        startActivityForResult(intent, 3);
+        Intent intent = new Intent(this, TextChooseActivity.class);
+        startActivity(intent);
     }
 
 }

@@ -32,6 +32,12 @@
             android:exported="true"
             android:theme="@style/Theme.CVTextReader.Fullscreen">
         </activity>
+        <activity
+            android:name=".TextChooseActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:exported="true"
+            android:theme="@style/Theme.CVTextReader.Fullscreen">
+        </activity>
     </application>
 
 </manifest>
