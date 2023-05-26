@@ -39,7 +39,9 @@ public class SearchFileProvider {
     ISearchListener mListenr;
     Integer maxCnt = -1;
     Integer currentSize = 0;
-
+    Boolean isFinished = false;
+    Boolean hasStarted = false;
+    private static SearchFileProvider instance;
 
     public void setLisenter(ISearchListener listenr){
         mListenr = listenr;
@@ -50,8 +52,23 @@ public class SearchFileProvider {
         mContext = context;
     }
 
+    public static synchronized SearchFileProvider getInstance(Context con){
+        if(instance == null){
+            instance = new SearchFileProvider(con);
+        }
+        return  instance;
+    }
+
     public void setMaxCnt(Integer maxCnt_){
         maxCnt = maxCnt_;
+    }
+
+    public Boolean isFinished(){
+        return isFinished;
+    }
+
+    public Boolean hasStarted(){
+        return hasStarted;
     }
 
     public synchronized ArrayList<FileBean> getOrWriteList(@Nullable FileBean f, operateType type){
@@ -70,6 +87,7 @@ public class SearchFileProvider {
     class searchLocalImageFileThread extends Thread{//继承Thread类
         @Override
         public void run(){
+            isFinished = false;
             long time = System.currentTimeMillis();
             Cursor cursor = mContext.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, null, null, null);
             if (cursor != null) {
@@ -95,11 +113,13 @@ public class SearchFileProvider {
             if(null != mListenr){
                mListenr.onSearchFinish();
             }
+            isFinished = true;
         }
     }
 
     public void searchLocalImageFile(Context context){
         currentSize = 0;
+        hasStarted = true;
         new searchLocalImageFileThread().start();
     }
 
@@ -126,6 +146,7 @@ public class SearchFileProvider {
     class searchLocalTxtFileThread extends Thread{//继承Thread类
         @Override
         public void run(){
+            isFinished = false;
             long time = System.currentTimeMillis();
             File sdDir = Environment.getExternalStorageDirectory();
             addLocalTxtFile(new File[]{sdDir});
@@ -133,10 +154,12 @@ public class SearchFileProvider {
             if(null != mListenr){
                 mListenr.onSearchFinish();
             }
+            isFinished = true;
         }
     }
     public void searchLocalTxtFile(){
         currentSize = 0;
+        hasStarted = true;
         new searchLocalTxtFileThread().start();
     }
 }

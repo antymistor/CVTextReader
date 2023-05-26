@@ -16,6 +16,9 @@ import android.widget.FrameLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.core.view.GestureDetectorCompat;
+
+import com.example.utils.SearchFileProvider;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -141,6 +144,8 @@ public class MainActivity extends AppCompatActivity {
         mDetector = new GestureDetectorCompat(this, new MyGestureListener());
         findViewById(R.id.button).setBackgroundColor(Color.parseColor("#00000000"));
         goNextpage();
+        SearchFileProvider.getInstance(null).setMaxCnt(15);
+        SearchFileProvider.getInstance(null).searchLocalTxtFile();
     }
 
     public void startread(View view) {

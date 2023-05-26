@@ -29,7 +29,6 @@ import java.util.Objects;
 
 public class TextChooseActivity extends AppCompatActivity {
     ListView mlist;
-    SearchFileProvider mSFP;
     private List<String> mNameList;
     private List<String> mPathList;
     @Override
@@ -44,26 +43,33 @@ public class TextChooseActivity extends AppCompatActivity {
         mlist = findViewById(R.id.mylistview);
         mNameList = new ArrayList<String>();
         mPathList = new ArrayList<String>();
-        mSFP = new SearchFileProvider(this);
         ArrayAdapter<String> adapter = new ArrayAdapter<String> (TextChooseActivity.this, R.layout.text_item, mNameList);
         mlist.setAdapter(adapter);
-        mSFP.setLisenter(new SearchFileProvider.ISearchListener() {
-            @Override
-            public void onSearchFinish() {
-
+        ArrayList<SearchFileProvider.FileBean> li =
+                SearchFileProvider.getInstance(null).getOrWriteList(null, SearchFileProvider.operateType.READ);
+        for(SearchFileProvider.FileBean f : li){
+            mNameList.add(f.fileName.substring(0, f.fileName.length() - 4));
+            mPathList.add(f.filePath);
+        }
+        adapter.notifyDataSetChanged();
+        if(!SearchFileProvider.getInstance(null).isFinished()){
+            if(!SearchFileProvider.getInstance(null).hasStarted()){
+                SearchFileProvider.getInstance(null).setMaxCnt(15);
+                SearchFileProvider.getInstance(null).searchLocalTxtFile();
             }
-
-            @Override
-            public void onSearchFile(SearchFileProvider.FileBean f) {
-               runOnUiThread(() -> {
-                   mNameList.add(f.fileName.substring(0, f.fileName.length() - 4));
-                   mPathList.add(f.filePath);
-                   adapter.notifyDataSetChanged();
-               });
-            }
-        });
-        mSFP.setMaxCnt(15);
-        mSFP.searchLocalTxtFile();
+            SearchFileProvider.getInstance(null).setLisenter(new SearchFileProvider.ISearchListener() {
+                @Override
+                public void onSearchFinish() {}
+                @Override
+                public void onSearchFile(SearchFileProvider.FileBean f) {
+                   runOnUiThread(() -> {
+                       mNameList.add(f.fileName.substring(0, f.fileName.length() - 4));
+                       mPathList.add(f.filePath);
+                       adapter.notifyDataSetChanged();
+                   });
+                }
+            });
+        }
         mlist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.Q)
             @Override
