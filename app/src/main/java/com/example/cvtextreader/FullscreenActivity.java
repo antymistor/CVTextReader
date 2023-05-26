@@ -78,7 +78,7 @@ public class FullscreenActivity extends AppCompatActivity {
     boolean isfirstload = true;
     static final int ProcessBarMax = 2000;
     ImageView fakeview;
-    String fakepicpath;
+    String fakepicpath = "";
     TextView pageshow;
     boolean isEyeCtrON = false;
     ViewFlingerAdvance flinger;
@@ -423,12 +423,6 @@ public class FullscreenActivity extends AppCompatActivity {
             return false;
         }
         return true;
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        Permission.checkPermission(this);
     }
 
     @Override

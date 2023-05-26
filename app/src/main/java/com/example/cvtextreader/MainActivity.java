@@ -17,8 +17,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.core.view.GestureDetectorCompat;
 
+import com.example.utils.Permission;
 import com.example.utils.SearchFileProvider;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -130,6 +132,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        Permission.checkPermission(this);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Objects.requireNonNull(getSupportActionBar()).hide();
@@ -143,7 +151,9 @@ public class MainActivity extends AppCompatActivity {
         parentlayout.addView(background);
         mDetector = new GestureDetectorCompat(this, new MyGestureListener());
         findViewById(R.id.button).setBackgroundColor(Color.parseColor("#00000000"));
-        goNextpage();
+        if(new File(getFilesDir().getPath() + "/progress.json").exists()){     //首次安装不跳入阅读页
+            goNextpage();
+        }
         SearchFileProvider.getInstance(null).setMaxCnt(15);
         SearchFileProvider.getInstance(null).searchLocalTxtFile();
     }
