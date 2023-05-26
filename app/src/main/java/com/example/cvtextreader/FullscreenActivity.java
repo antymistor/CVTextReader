@@ -67,6 +67,7 @@ public class FullscreenActivity extends AppCompatActivity {
     File progressfile;
     EyeDetectorbase detector;
     String FilePath;
+    String preFileName = "";
     ArrayList<Pair<String, Float>> titlelist;
     long linesum = 0;
     Context mContext;
@@ -83,6 +84,7 @@ public class FullscreenActivity extends AppCompatActivity {
     ViewFlingerAdvance flinger;
     ImageViewAdvance imageViewBack;
     Float maxprogress = 1.0f;
+    Boolean hasLoadDisk = false;
     private void saveFakeFrame(){
         if(viewtest != null) {
             imageViewBack.setDrawingCacheEnabled(true);
@@ -107,6 +109,12 @@ public class FullscreenActivity extends AppCompatActivity {
         }
     }
     private void showFakeFrame(){
+        if(getIntent().getBooleanExtra("BanFakePage", false)){
+            GetAndSetStatusFromDisk();
+            if(!statusinfo_.currentFileNameDy.equals(preFileName)){
+                return;
+            }
+        }
         File file = new File(fakepicpath);
         if(file.exists()) {
             parentlayout = findViewById(R.id.parentlayout);
@@ -138,6 +146,9 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     private void GetAndSetStatusFromDisk(){
+        if(hasLoadDisk){
+            return;
+        }
         try {
             progressfile = new File(getFilesDir().getPath() + "/progress.json");
             if (!progressfile.exists() && !progressfile.createNewFile()) {
@@ -152,6 +163,7 @@ public class FullscreenActivity extends AppCompatActivity {
                     String jstr = new String(buffer);
                     if(isJson(jstr)) {
                         statusinfo_ = gsonin.fromJson(jstr, statusinfo.class);
+                        preFileName = statusinfo_.currentFileNameDy;
                         statusinfo_.currentFileNameDy = getIntent().getStringExtra("fileName").isEmpty() ? statusinfo_.currentFileNameDy : getIntent().getStringExtra("fileName");
                         if(statusinfo_.currentFileNameDy != null && statusinfo_.fileprogresslist != null && statusinfo_.fileprogresslist.containsKey(statusinfo_.currentFileNameDy) ){
                             Float pf =  statusinfo_.fileprogresslist.get(statusinfo_.currentFileNameDy);
@@ -161,7 +173,6 @@ public class FullscreenActivity extends AppCompatActivity {
                                 statusinfo_.progress = 0.0f;
                             }
                         }
-                        progressbar.setProgress((int) (statusinfo_.progress * ProcessBarMax));
                         Log.e("aizhiqiang","read json success" + String.valueOf(statusinfo_.progress) );
                     }else{
                         Log.e("aizhiqiang","read json fail");
@@ -176,6 +187,7 @@ public class FullscreenActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        hasLoadDisk = true;
     }
 
     private void LoadViews(){
@@ -204,7 +216,9 @@ public class FullscreenActivity extends AppCompatActivity {
                         statusinfo_.progress = progress;
                         progressbar.setProgress((int) (statusinfo_.progress * ProcessBarMax));
                         fakeFrameSaveStatus = FakeFrameSaveStatus.need_save_but_do_not_save;
-                        fakeview.setVisibility(View.GONE);
+                        if(fakeview != null) {
+                            fakeview.setVisibility(View.GONE);
+                        }
                     }
                 }
 
@@ -311,6 +325,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 public void onStopTrackingTouch(SeekBar seekBar) {
                 }
             });
+            progressbar.setProgress((int) (statusinfo_.progress * ProcessBarMax));
             progressbar.bringToFront();
         }
 

@@ -86,6 +86,7 @@ public class TextChooseActivity extends AppCompatActivity {
                 Intent intent = new Intent(TextChooseActivity.this, FullscreenActivity.class);
                 intent.putExtra("filePath", getFilesDir().getPath() +"/cache.txt");
                 intent.putExtra("fileName", mNameList.get(position));
+                intent.putExtra("BanFakePage", true);
                 startActivity(intent);
             }
         });
