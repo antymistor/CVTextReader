@@ -109,12 +109,6 @@ public class FullscreenActivity extends AppCompatActivity {
         }
     }
     private void showFakeFrame(){
-        if(getIntent().getBooleanExtra("BanFakePage", false)){
-            GetAndSetStatusFromDisk();
-            if(!statusinfo_.currentFileNameDy.equals(preFileName)){
-                return;
-            }
-        }
         File file = new File(fakepicpath);
         if(file.exists()) {
             parentlayout = findViewById(R.id.parentlayout);
@@ -165,6 +159,7 @@ public class FullscreenActivity extends AppCompatActivity {
                         statusinfo_ = gsonin.fromJson(jstr, statusinfo.class);
                         preFileName = statusinfo_.currentFileNameDy;
                         statusinfo_.currentFileNameDy = getIntent().getStringExtra("fileName").isEmpty() ? statusinfo_.currentFileNameDy : getIntent().getStringExtra("fileName");
+                        fakepicpath = getFilesDir().getPath() + "/" + statusinfo_.currentFileNameDy + ".png";
                         if(statusinfo_.currentFileNameDy != null && statusinfo_.fileprogresslist != null && statusinfo_.fileprogresslist.containsKey(statusinfo_.currentFileNameDy) ){
                             Float pf =  statusinfo_.fileprogresslist.get(statusinfo_.currentFileNameDy);
                             if(pf != null){
@@ -451,7 +446,8 @@ public class FullscreenActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         isfirstload = true;
         mContext = this;
-        fakepicpath = getFilesDir().getPath() + "/frame.png";
+        GetAndSetStatusFromDisk();
+        //fakepicpath = getFilesDir().getPath() + "/frame.png";
 
         //pretty layout
         Objects.requireNonNull(getSupportActionBar()).hide();
@@ -468,7 +464,7 @@ public class FullscreenActivity extends AppCompatActivity {
         FilePath = getIntent().getStringExtra("filePath");
 
         //load
-        GetAndSetStatusFromDisk();
+        //GetAndSetStatusFromDisk();
         LoadViews();
         LoadTimer();
         setlightmode();
