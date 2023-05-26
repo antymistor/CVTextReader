@@ -41,28 +41,32 @@ public class MainActivity extends AppCompatActivity {
     private int backviewHeight = 0;
     private GestureDetectorCompat mDetector;
 
+
+    private void doLoadBitamp(){
+        if(backviewWidth >0 && backviewHeight >0){
+            loadBitmap(-1);
+        }else{
+            parentlayout.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    if(backviewWidth <=0 || backviewHeight <=0){
+                        backviewWidth = background.getWidth();
+                        backviewHeight = background.getHeight();
+                        loadBitmap(0);
+                    }
+                }
+            });
+        }
+    }
     class LoadBitmapThread extends Thread{//继承Thread类
         @Override
         public void run(){
             try {
-                Thread.sleep(1000);
-                if(backviewWidth >0 && backviewHeight >0){
-                    loadBitmap(-1);
-                }else{
-                    parentlayout.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                        @Override
-                        public void onGlobalLayout() {
-                            if(backviewWidth <=0 || backviewHeight <=0){
-                                backviewWidth = background.getWidth();
-                                backviewHeight = background.getHeight();
-                                loadBitmap(0);
-                            }
-                        }
-                    });
-                }
+                Thread.sleep(1500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            doLoadBitamp();
         }
     }
 
@@ -153,6 +157,9 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.button).setBackgroundColor(Color.parseColor("#00000000"));
         if(new File(getFilesDir().getPath() + "/progress.json").exists()){     //首次安装不跳入阅读页
             goNextpage();
+        }else{
+            doLoadBitamp();
+            Permission.checkPermission(this);
         }
         SearchFileProvider.getInstance(null).setMaxCnt(15);
         SearchFileProvider.getInstance(null).searchLocalTxtFile();
