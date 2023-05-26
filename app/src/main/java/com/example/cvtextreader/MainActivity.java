@@ -151,6 +151,7 @@ public class MainActivity extends AppCompatActivity {
     public void startread(View view) {
         Intent intent = new Intent(this, TextChooseActivity.class);
         startActivity(intent);
+        new LoadBitmapThread().start();
     }
 
 }
