@@ -11,9 +11,9 @@ import android.provider.Settings;
 import androidx.core.app.ActivityCompat;
 
 /**
- * Created by aizhiqiang on 2023/3/2
+ * Created by antymistor on 2023/3/2
  *
- * @author aizhiqiang@bytedance.com
+ * @author azq2018@zju.edu.cn
  */
 public class Permission {
     private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 1;

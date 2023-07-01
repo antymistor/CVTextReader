@@ -19,9 +19,9 @@ import java.util.regex.Pattern;
 
 
 /**
- * Created by aizhiqiang on 2023/2/20
+ * Created by antymistor on 2023/2/20
  *
- * @author aizhiqiang@bytedance.com
+ * @author azq2018@zju.edu.cn
  */
 public class TextViewAdvance extends AppCompatTextView {
     private Context mContext;
@@ -74,7 +74,7 @@ public class TextViewAdvance extends AppCompatTextView {
                         }
                         setText(sb.toString());
                         mHeight = getLineHeight() * getLineCount();
-                        Log.e("aizhiqing", "aizhiqiang height = " + mHeight);
+                        Log.e("aizhiqing", "antymistor height = " + mHeight);
                         if(mListener!=null){
                             mListener.onGetList(list, linecount);
                         }

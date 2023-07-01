@@ -8,9 +8,9 @@ import java.util.ArrayList;
 
 
 /**
- * Created by aizhiqiang on 2023/2/20
+ * Created by antymistor on 2023/2/20
  *
- * @author aizhiqiang@bytedance.com
+ * @author azq2018@zju.edu.cn
  */
 public class TextViewCreater {
     public static class TextViewPara{

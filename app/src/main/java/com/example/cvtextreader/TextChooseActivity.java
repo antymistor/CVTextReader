@@ -22,9 +22,9 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Created by aizhiqiang on 2023/5/25
+ * Created by antymistor on 2023/5/25
  *
- * @author aizhiqiang@bytedance.com
+ * @author azq2018@zju.edu.cn
  */
 
 public class TextChooseActivity extends AppCompatActivity {

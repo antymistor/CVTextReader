@@ -5,9 +5,9 @@ import android.media.FaceDetector;
 import java.nio.ByteBuffer;
 
 /**
- * Created by aizhiqiang on 2023/2/22
+ * Created by antymistor on 2023/2/22
  *
- * @author aizhiqiang@bytedance.com
+ * @author azq2018@zju.edu.cn
  */
 public class EyeDetector extends EyeDetectorbase {
     FaceDetector facedect;

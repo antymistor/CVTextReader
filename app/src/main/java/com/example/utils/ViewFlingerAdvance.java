@@ -19,9 +19,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * Created by aizhiqiang on 2023/5/15
+ * Created by antymistor on 2023/5/15
  *
- * @author aizhiqiang@bytedance.com
+ * @author azq2018@zju.edu.cn
  */
 public class ViewFlingerAdvance extends View implements Runnable {
     private static final int INVALID_POINTER = -1;

@@ -168,14 +168,14 @@ public class FullscreenActivity extends AppCompatActivity {
                                 statusinfo_.progress = 0.0f;
                             }
                         }
-                        Log.e("aizhiqiang","read json success" + String.valueOf(statusinfo_.progress) );
+                        Log.e("antymistor","read json success" + String.valueOf(statusinfo_.progress) );
                     }else{
-                        Log.e("aizhiqiang","read json fail");
+                        Log.e("antymistor","read json fail");
                     }
                 }
             }
             if (statusinfo_ == null) {
-                Log.e("aizhiqiang","read json fail");
+                Log.e("antymistor","read json fail");
                 statusinfo_ = new statusinfo();
                 statusinfo_.progress = 0;
             }
@@ -235,7 +235,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 @Override
                 public void onGlobalLayout() {
                     if (statusinfo_ != null && isfirstload) {
-                        Log.e("aizhiqiang", "first set progress" + String.valueOf(statusinfo_.progress));
+                        Log.e("antymistor", "first set progress" + String.valueOf(statusinfo_.progress));
                         viewtest.seektopos(statusinfo_.progress);
                         isfirstload = false;
                     }
@@ -383,7 +383,7 @@ public class FullscreenActivity extends AppCompatActivity {
                                 nextpageprocess = titlelist.get(i+1).second;
                             }
                             pageindex = i;
-                            Log.e("aizhiqiang", "current page is" + titlelist.get(i).first);
+                            Log.e("antymistor", "current page is" + titlelist.get(i).first);
                             break;
                         }
                     }

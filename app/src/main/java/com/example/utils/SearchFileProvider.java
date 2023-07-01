@@ -13,9 +13,9 @@ import java.util.ArrayList;
 
 
 /**
- * Created by aizhiqiang on 2023/5/25
+ * Created by antymistor on 2023/5/25
  *
- * @author aizhiqiang@bytedance.com
+ * @author azq2018@zju.edu.cn
  */
 public class SearchFileProvider {
     public static class FileBean{

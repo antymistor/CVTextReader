@@ -27,9 +27,9 @@ import java.util.Objects;
 import java.util.Random;
 
 /**
- * Created by aizhiqiang on 2023/2/24
+ * Created by antymistor on 2023/2/24
  *
- * @author aizhiqiang@bytedance.com
+ * @author azq2018@zju.edu.cn
  */
 public class MainActivity extends AppCompatActivity {
     private FrameLayout parentlayout  = null;

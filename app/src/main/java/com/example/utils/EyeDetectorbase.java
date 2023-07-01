@@ -15,9 +15,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * Created by aizhiqiang on 2023/2/25
+ * Created by antymistor on 2023/2/25
  *
- * @author aizhiqiang@bytedance.com
+ * @author azq2018@zju.edu.cn
  */
 public class EyeDetectorbase {
     static public class EyeStatus{

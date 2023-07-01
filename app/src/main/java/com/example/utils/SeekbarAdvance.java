@@ -9,9 +9,9 @@ import android.view.MotionEvent;
 import com.h6ah4i.android.widget.verticalseekbar.VerticalSeekBar;
 
 /**
- * Created by aizhiqiang on 2023/3/5
+ * Created by antymistor on 2023/3/5
  *
- * @author aizhiqiang@bytedance.com
+ * @author azq2018@zju.edu.cn
  */
 public class SeekbarAdvance extends VerticalSeekBar {
 
@@ -44,7 +44,7 @@ public class SeekbarAdvance extends VerticalSeekBar {
             case MotionEvent.ACTION_UP:
                 if (isTouchInThumb(event, getThumb().getBounds()) &&
                         (System.currentTimeMillis() - lasttouchdown) < 150){
-                    Log.e("aizhiqiang", "click on processbar");
+                    Log.e("antymistor", "click on processbar");
                     if (ClickThumbListener != null)
                         ClickThumbListener.onClickThumb();
                 }

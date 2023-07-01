@@ -10,9 +10,9 @@ import androidx.annotation.NonNull;
 import java.util.List;
 
 /**
- * Created by aizhiqiang on 2023/5/25
+ * Created by antymistor on 2023/5/25
  *
- * @author aizhiqiang@bytedance.com
+ * @author azq2018@zju.edu.cn
  */
 public class NovelNameAdapter extends ArrayAdapter<String> {
     private int resourceId;
